@@ -4,43 +4,31 @@
 Goal: A working pipeline with minimal features—just enough to prove the concept. It’s rough, unpolished, and 
 single-threaded, but it handles an interruption end-to-end.
 
-Components:
-
-1. Podcast Playback:
+1. [x] Podcast Playback:
 - Pre-generate a static podcast script (e.g., 5 lines of dialogue).
 - Play it as audio using a simple TTS system (e.g., gTTS).
-- Store the current position (line number) when interrupted.
+- Store the current position (line number) when interrupted with a whisper voice recognition, keyword "STOP"
 
-Success: Plays audio and stops on command.
-
-2. Interruption Detection:
+2. [x] Interruption Detection:
 - Use a basic trigger (e.g., keyboard press like “i” for interrupt, or a hardcoded STT stub).
 - Pause the playback when triggered.
 
-Success: Detects an interrupt and halts audio.
-
-3. Response Generation:
+3. [x] Response Generation:
 - Take a hardcoded user input (e.g., “What’s the source?”).
 - Call Ollama’s API with a simple prompt (current line + question).
 - Convert response to audio with TTS.
 
-Success: Generates and plays a response.
-
-4. Context Resumption:
+4. [x] Context Resumption:
 - Resume playback from the next line after the response.
 - No dynamic rewriting—just pick up where it left off.
 
-Success: Continues podcast after the response.
-
 ### TDD Plan:
 Tests:
-- test_play_podcast: Audio starts and plays a line.
-- test_interrupt_stops_playback: Interrupt halts audio at the right spot.
-- test_response_generation: Mock Ollama qwen:0.5b API returns a response, TTS plays it.
-- test_resume_podcast: Playback resumes at next line after response.
-
-Done Looks Like:
-You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”), press “i” to interrupt, type a question, 
+- [x] test_play_podcast: Audio starts and plays a line.
+- [x] test_interrupt_stops_playback: Interrupt halts audio at the right spot.
+- [x] test_response_generation: Mock Ollama qwen:0.5b API returns a response, TTS plays it.
+- [x] test_resume_podcast: Playback resumes at next line after response.
+- [x] test_tie_stg1: You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”), press “i” to interrupt, type a question, 
 hear a response (e.g., “That’s from NOAA”), and the podcast resumes with the next line. 
 It’s clunky—manual interrupts, no real STT, no context adjustment—but it works.
 
@@ -66,21 +54,15 @@ Components:
    - https://github.com/zilliztech/deep-searcher
 - send research to OS Large model and generate podcast script 
 
-Success: report generated for topic 
-
 2. Podcast Playback:
 - Stream audio in chunks (e.g., 2-3 seconds ahead) instead of pre-rendering everything.
 - Track state (line + timestamp) more precisely.
 - voice clone: 
    - rickman : https://www.youtube.com/watch?v=FVf4vgK1NIA
 
-Success: Streams audio and pauses mid-chunk.
-
 3. Interruption Detection:
 - Integrate Whisper (e.g., Tiny) for real-time STT with VAD (e.g., WebRTC VAD).
 - Trigger on voice detection instead of manual input.
-
-Success: Stops playback when you speak.
 
 4. Response Generation:
 - Pass podcast context (last 1-2 lines + next 1-2 lines) + user question to Ollama qwen:0.5b.
@@ -91,8 +73,6 @@ Success: Stops playback when you speak.
 	 if yes, look it up online (TODO: online web search without detailed report) -> https://python.langchain.com/docs/integrations/tools/ddg/
 		 respond by combining the answer and the next point in transcript
 
-Success: Answers stay relevant, plays smoothly.
-
 5. Podcast Generation:
 - Generate podcast script from detailed report
 - keep context across chunks 
@@ -100,8 +80,6 @@ Success: Answers stay relevant, plays smoothly.
 6. Context Resumption:
 - Basic script adjustment: Ollama qwen:0.5b suggests a transition phrase (e.g., “Back to CO2… . flow back to next talking point”).
 - Resume from the interrupted point or next logical spot.
-
-Success: Picks up with a simple segue, no jarring jumps.
 
 7. Client
 - add clerk auth to client and server
@@ -128,7 +106,7 @@ Goal: A seamless, human-like experience with low latency, dynamic rewriting, and
 
 Components:
 
-1. Podcast Playback:
+1. Podcast Playback: ---> turn async + production ready
 - Generate main script with Large model, save complete script.
 - Use high-quality TTS (xtts on local) with natural intonation.
 - Pay attention to the voice cloning instructions in xtts-server: Note on creating samples for quality voice cloning
@@ -136,30 +114,22 @@ Components:
 - add received/send audio to a queue from/to websockets
 - * collect stream in a queue for 4 seconds and then stream the first 2 seconds and iterate sliding window to always keep 2 seconds in buffer.
 
-Success: Feels like a live, professional podcast.
-
-2. Interruption Detection:
+2. Interruption Detection: ------> turn async + production ready
 - Optimize STT (e.g., Distil-Whisper + GPU) for <100ms latency.
 - Fine-tune VAD (e.g., Silero) for zero false positives/negatives.
 - Add a button interrupt.
 
-Success: Interrupts feel instant and reliable.
-
-3. Response Generation:
+3. Response Generation:------> turn async + production ready
 - Full context awareness: Pass entire script history + source material summary to ollama qwen.
 - Dynamic tone matching (casual, formal, etc.) based on podcast style.
 - Pre-generate fallback responses for common off-topic questions.
 
-Success: Answers are precise, engaging, and flow naturally.
-
-4. Context Resumption:
+4. Context Resumption:------> turn async + production ready
 - Rewrite the script post-interruption with Ollama qwn:0.5b for seamless integration (e.g., weave the answer into the next segment).
 - Randomize transition phrases for variety.
 - Smooth audio splicing with fades and overlaps.
 
-Success: Resumption feels like a human host adapting live.
-
-5. Client:
+5. Client:------> turn async + production ready
 - add Siri like animation to halo
 
 
