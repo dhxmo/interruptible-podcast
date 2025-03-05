@@ -19,5 +19,6 @@ class TestPodcastPlayback(unittest.TestCase):
         save_progress(user_id, 0)
         self.assertEqual(load_progress(user_id), 0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()
