@@ -116,6 +116,21 @@ async def handle_user_interruption(next_line):
 
 
 def main():
+    """
+    generate audio file for the script
+    have whisper listen for user interaction in thread. if interaction yes. flag it on the global
+
+    while iterating over file in audio_files:
+        play the audio files
+            if global flagged, note down the current line index in queue
+
+        check queue for index of line that was being spoken just now.
+        async -> send next question to llm and generate user query response + fade to next question
+
+        resume playback of audio_files from where it was paused.
+
+    :return:
+    """
     # Generate audio files
     audio_files = generate_audio_files(podcast_script)
 
