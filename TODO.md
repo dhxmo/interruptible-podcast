@@ -60,7 +60,8 @@ Components:
 - Stream audio in chunks (e.g., 2-3 seconds ahead) instead of pre-rendering everything.
 - Track state (line + timestamp) more precisely.
 - voice clone: 
-   - rickman : https://www.youtube.com/watch?v=FVf4vgK1NIA
+  - https://github.com/daswer123/xtts-api-server/tree/main 
+  - rickman : https://www.youtube.com/watch?v=FVf4vgK1NIA
 
 3. Interruption Detection:
 - Integrate Whisper (e.g., Tiny) for real-time STT with VAD (e.g., WebRTC VAD).
@@ -78,6 +79,7 @@ Components:
 5. Podcast Generation:
 - Generate podcast script from detailed report
 - keep context across chunks 
+- https://github.com/souzatharsis/podcastfy
 
 6. Context Resumption:
 - Basic script adjustment: Ollama qwen:0.5b suggests a transition phrase (e.g., “Back to CO2… . flow back to next talking point”).
@@ -108,7 +110,7 @@ Goal: A seamless, human-like experience with low latency, dynamic rewriting, and
 
 Components:
 
-1. Podcast Playback: ---> turn async + production ready
+1. Podcast Playback
 - Generate main script with Large model, save complete script.
 - Use high-quality TTS (xtts on local) with natural intonation.
 - Pay attention to the voice cloning instructions in xtts-server: Note on creating samples for quality voice cloning
@@ -116,23 +118,27 @@ Components:
 - add received/send audio to a queue from/to websockets
 - * collect stream in a queue for 4 seconds and then stream the first 2 seconds and iterate sliding window to always keep 2 seconds in buffer.
 
-2. Interruption Detection: ------> turn async + production ready
+2. Interruption Detection:
 - Optimize STT (e.g., Distil-Whisper + GPU) for <100ms latency.
 - Fine-tune VAD (e.g., Silero) for zero false positives/negatives.
 - Add a button interrupt.
+- whisper stream: 
+  - https://github.com/QuentinFuxa/whisper_streaming_web
+  - https://github.com/SYSTRAN/faster-whisper
 
-3. Response Generation:------> turn async + production ready
+3. Response Generation:
 - Full context awareness: Pass entire script history + source material summary to ollama qwen.
 - Dynamic tone matching (casual, formal, etc.) based on podcast style.
 - Pre-generate fallback responses for common off-topic questions.
 
-4. Context Resumption:------> turn async + production ready
+4. Context Resumption:
 - Rewrite the script post-interruption with Ollama qwn:0.5b for seamless integration (e.g., weave the answer into the next segment).
 - Randomize transition phrases for variety.
 - Smooth audio splicing with fades and overlaps.
 
-5. Client:------> turn async + production ready
+5. Client:
 - add Siri like animation to halo
+- add proper input + send button to begin
 
 
 ### TDD Plan:
