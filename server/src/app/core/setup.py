@@ -1,17 +1,14 @@
 from collections.abc import AsyncGenerator, Callable
 from contextlib import _AsyncGeneratorContextManager, asynccontextmanager
-from pathlib import Path
 from typing import Any
 
 import anyio
 import fastapi
-import redis.asyncio as redis
 from arq import create_pool
 from arq.connections import RedisSettings
 from fastapi import APIRouter, FastAPI
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-from sentence_transformers import SentenceTransformer
 
 from .config import (
     EnvironmentOption,
@@ -106,7 +103,7 @@ def lifespan_factory(
         if isinstance(settings, RedisQueueSettings):
             await close_redis_queue_pool()
 
-        settings.MODELS.clear()
+        # settings.MODELS.clear()
 
     return lifespan
 

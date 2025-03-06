@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import os
 import queue
 from datetime import datetime
 from typing import Dict
@@ -9,7 +10,8 @@ import sounddevice as sd
 import soundfile as sf
 from fastapi import WebSocket
 
-from server.src.app.utils.logger import logger
+from .config import settings
+from ..utils.logger import logger
 
 
 class ConnectionManager:
@@ -18,7 +20,7 @@ class ConnectionManager:
         self.audio_streams: Dict[str, sd.InputStream] = {}
         self.audio_queues: Dict[str, queue.Queue] = {}
         self.output_streams: Dict[str, sd.OutputStream] = {}
-        self.audio_files: Dict[str, sf.SoundFile] = {}
+        self.audio_files: Dict[str, str] = {}
 
     async def connect(self, websocket: WebSocket, client_id: str) -> bool:
         try:
@@ -46,26 +48,15 @@ class ConnectionManager:
             self.audio_streams[client_id] = input_stream
 
             # Output stream
-            # output_stream = sd.OutputStream(
-            #     samplerate=SAMPLE_RATE,
-            #     channels=CHANNELS,
-            #     blocksize=BLOCK_SIZE
-            # )
-            # output_stream.start()
-            # self.output_streams[client_id] = output_stream
+            output_stream = sd.OutputStream(
+                samplerate=SAMPLE_RATE, channels=CHANNELS, blocksize=BLOCK_SIZE
+            )
+            output_stream.start()
+            self.output_streams[client_id] = output_stream
 
             # Audio file setup
-            filename = (
-                f"recording_{client_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
-            )
-            audio_file = sf.SoundFile(
-                filename,
-                mode="w",
-                samplerate=SAMPLE_RATE,
-                channels=CHANNELS,
-                format="WAV",
-            )
-            self.audio_files[client_id] = audio_file
+            filename = f"{settings.MEDIA_DIR}/recording_{client_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.webm"
+            self.audio_files[client_id] = filename
 
             logger.info(f"Client {client_id} connected, recording to {filename}")
             return True
@@ -88,7 +79,7 @@ class ConnectionManager:
             if client_id in self.audio_queues:
                 del self.audio_queues[client_id]
             if client_id in self.audio_files:
-                self.audio_files[client_id].close()
+                # os.remove(self.audio_files[client_id])
                 del self.audio_files[client_id]
             logger.info(f"Client {client_id} disconnected")
         except Exception as e:
@@ -121,18 +112,21 @@ class ConnectionManager:
             try:
                 if audio_queue and not audio_queue.empty():
                     audio_chunk = audio_queue.get_nowait()
-                    processed_chunk = audio_chunk  # Add processing here if needed
+                    print("chunk", audio_chunk)
 
-                    # Save to file
-                    if audio_file:
-                        audio_file.write(processed_chunk)
+                    # when recording, bring stream to 0 to prevent append
 
-                    # Send to client
-                    await self.send_audio_chunk(processed_chunk.tobytes(), client_id)
-
-                    # Play locally (optional)
-                    if output_stream:
-                        output_stream.write(processed_chunk)
+                    # ---> user input stream here. integrate from here
+                    # # Save to file
+                    # if audio_file:
+                    #     audio_file.write(processed_chunk)
+                    #
+                    # # Send to client
+                    # await self.send_audio_chunk(processed_chunk.tobytes(), client_id)
+                    #
+                    # # Play locally (optional)
+                    # if output_stream:
+                    #     output_stream.write(processed_chunk)
             except queue.Empty:
                 await asyncio.sleep(0.01)
             except Exception as e:

@@ -1,6 +1,7 @@
 import os
 from dataclasses import field
 from enum import Enum
+from pathlib import Path
 
 from pydantic_settings import BaseSettings
 from starlette.config import Config
@@ -8,8 +9,12 @@ from starlette.config import Config
 
 current_file_dir = os.path.dirname(os.path.realpath(__file__))
 assets_dir = os.path.join(current_file_dir, "..", "..", "..", "assets")
+media_dir = os.path.join(current_file_dir, "..", "..", "..", "media")
+
 env_path = os.path.join(current_file_dir, "..", "..", ".env")
 config = Config(env_path)
+
+Path(media_dir).mkdir(exist_ok=True)
 
 
 class AppSettings(BaseSettings):
@@ -45,6 +50,7 @@ class LocalAssetsSetting(BaseSettings):
 class EnvironmentSettings(BaseSettings):
     ENVIRONMENT: EnvironmentOption = config("ENVIRONMENT", default="local")
     CONFIG_YAML: str = config("CONFIG_YAML", default=f"{current_file_dir}/config.yaml")
+    MEDIA_DIR: str = config("MEDIA_DIR", default=media_dir)
 
 
 class RedisCacheSettings(BaseSettings):
