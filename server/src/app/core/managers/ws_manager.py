@@ -7,8 +7,8 @@ from typing import Dict
 import sounddevice as sd
 from fastapi import WebSocket
 
-from .config import settings
-from ..utils.logger import logger
+from server.src.app.core.config import settings
+from server.src.app.utils.logger import logger
 
 
 class ConnectionManager:

@@ -6,7 +6,7 @@ from fastapi import WebSocket, APIRouter, WebSocketDisconnect
 from pydub import AudioSegment
 
 from ...core.config import settings
-from ...core.ws_manager import ConnectionManager
+from server.src.app.core.managers.ws_manager import ConnectionManager
 from ...utils.logger import logger
 
 router = APIRouter(tags=["ws"])
@@ -56,7 +56,9 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
                         f"Unknown message type received for client {client_id}: {message}"
                     )
             except WebSocketDisconnect:
-                logger.info(f"WebSocketDisconnect exception caught for client {client_id}")
+                logger.info(
+                    f"WebSocketDisconnect exception caught for client {client_id}"
+                )
                 break
             except Exception as inner_e:
                 logger.error(f"Inner loop error for client {client_id}: {inner_e}")

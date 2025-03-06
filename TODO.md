@@ -31,17 +31,17 @@ Tests:
 
 5. Client
 
-- [x] Client Side Code Records Audio Stream:
+- Client Side Code Records Audio Stream:
 The sendAudio function initializes an audio input stream using sounddevice.
 The audioCallback function captures the audio data and puts it into an asynchronous queue.
-- [x] Sends Audio Stream:
+- Sends Audio Stream:
 The sendAudio function runs in a loop, fetching audio data from the queue and sending it to the WebSocket server.
 - Receives Audio:
 The receiveAudio function continuously listens for messages from the WebSocket server and playbacks the received audio file.
 
 6. Integrate client with server and tie the workflow 
-You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”), press “i” to interrupt, type a question, 
-hear a response (e.g., “That’s from NOAA”), and the podcast resumes with the next line. 
+You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”) on the phone, press record button to interrupt, 
+say a question, hear a response (e.g., “That’s from NOAA”), and the podcast resumes with the next line where it was cut off. 
 It’s clunky—manual interrupts, no real STT, no context adjustment—but it works.
 
 
