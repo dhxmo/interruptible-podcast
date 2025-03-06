@@ -1,13 +1,10 @@
-import asyncio
 import base64
 import json
-import os
 import queue
 from datetime import datetime
 from typing import Dict
 
 import sounddevice as sd
-import soundfile as sf
 from fastapi import WebSocket
 
 from .config import settings
@@ -21,16 +18,16 @@ class ConnectionManager:
         self.audio_queues: Dict[str, queue.Queue] = {}
         self.output_streams: Dict[str, sd.OutputStream] = {}
         self.audio_files: Dict[str, str] = {}
+        # https://gattanasio.cc/post/whisper-encoder/
+        self.SAMPLE_RATE = 16000
+        self.CHANNELS = 2
+        self.BLOCK_SIZE = 1024
 
     async def connect(self, websocket: WebSocket, client_id: str) -> bool:
         try:
             await websocket.accept()
             self.active_connections[client_id] = websocket
             self.audio_queues[client_id] = queue.Queue()
-
-            SAMPLE_RATE = 44100
-            CHANNELS = 2
-            BLOCK_SIZE = 1024
 
             def audio_callback(indata, frames, time, status):
                 if status:
@@ -39,9 +36,9 @@ class ConnectionManager:
 
             # Input stream
             input_stream = sd.InputStream(
-                samplerate=SAMPLE_RATE,
-                channels=CHANNELS,
-                blocksize=BLOCK_SIZE,
+                samplerate=self.SAMPLE_RATE,
+                channels=self.CHANNELS,
+                blocksize=self.BLOCK_SIZE,
                 callback=audio_callback,
             )
             input_stream.start()
@@ -49,13 +46,15 @@ class ConnectionManager:
 
             # Output stream
             output_stream = sd.OutputStream(
-                samplerate=SAMPLE_RATE, channels=CHANNELS, blocksize=BLOCK_SIZE
+                samplerate=self.SAMPLE_RATE,
+                channels=self.CHANNELS,
+                blocksize=self.BLOCK_SIZE,
             )
             output_stream.start()
             self.output_streams[client_id] = output_stream
 
             # Audio file setup
-            filename = f"{settings.MEDIA_DIR}/recording_{client_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.webm"
+            filename = f"{settings.MEDIA_DIR}/recording_{client_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
             self.audio_files[client_id] = filename
 
             logger.info(f"Client {client_id} connected, recording to {filename}")
@@ -103,32 +102,33 @@ class ConnectionManager:
                 logger.error(f"Error sending to {client_id}: {e}")
                 await self.disconnect(client_id)
 
-    async def process_and_stream(self, client_id: str):
-        audio_queue = self.audio_queues.get(client_id)
-        output_stream = self.output_streams.get(client_id)
-        audio_file = self.audio_files.get(client_id)
-
-        while client_id in self.active_connections:
-            try:
-                if audio_queue and not audio_queue.empty():
-                    audio_chunk = audio_queue.get_nowait()
-                    print("chunk", audio_chunk)
-
-                    # when recording, bring stream to 0 to prevent append
-
-                    # ---> user input stream here. integrate from here
-                    # # Save to file
-                    # if audio_file:
-                    #     audio_file.write(processed_chunk)
-                    #
-                    # # Send to client
-                    # await self.send_audio_chunk(processed_chunk.tobytes(), client_id)
-                    #
-                    # # Play locally (optional)
-                    # if output_stream:
-                    #     output_stream.write(processed_chunk)
-            except queue.Empty:
-                await asyncio.sleep(0.01)
-            except Exception as e:
-                logger.error(f"Error processing audio for {client_id}: {e}")
-                break
+    # TODO STG2: add bytes data from websocket to queue and run parallel process to transcribe here
+    # async def process_and_stream(self, client_id: str):
+    #     audio_queue = self.audio_queues.get(client_id)
+    #     output_stream = self.output_streams.get(client_id)
+    #     audio_file = self.audio_files.get(client_id)
+    #
+    #     while client_id in self.active_connections:
+    #         try:
+    #             if audio_queue and not audio_queue.empty():
+    #                 audio_chunk = audio_queue.get_nowait()
+    #                 print("chunk", audio_chunk)
+    #
+    #                 # when recording, bring stream to 0 to prevent append
+    #
+    #                 # ---> user input stream here. integrate from here
+    #                 # # Save to file
+    #                 # if audio_file:
+    #                 #     audio_file.write(processed_chunk)
+    #                 #
+    #                 # # Send to client
+    #                 # await self.send_audio_chunk(processed_chunk.tobytes(), client_id)
+    #                 #
+    #                 # # Play locally (optional)
+    #                 # if output_stream:
+    #                 #     output_stream.write(processed_chunk)
+    #         except queue.Empty:
+    #             await asyncio.sleep(0.01)
+    #         except Exception as e:
+    #             logger.error(f"Error processing audio for {client_id}: {e}")
+    #             break

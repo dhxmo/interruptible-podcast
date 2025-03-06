@@ -31,10 +31,10 @@ Tests:
 
 5. Client
 
-- Client Side Code Records Audio Stream:
+- [x] Client Side Code Records Audio Stream:
 The sendAudio function initializes an audio input stream using sounddevice.
 The audioCallback function captures the audio data and puts it into an asynchronous queue.
-- Sends Audio Stream:
+- [x] Sends Audio Stream:
 The sendAudio function runs in a loop, fetching audio data from the queue and sending it to the WebSocket server.
 - Receives Audio:
 The receiveAudio function continuously listens for messages from the WebSocket server and playbacks the received audio file.

@@ -1,6 +1,7 @@
 .idea/
 __pycache__/
 .env
+media/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
