@@ -28,9 +28,6 @@ Tests:
 - [x] test_interrupt_stops_playback: Interrupt halts audio at the right spot.
 - [x] test_response_generation: Mock Ollama qwen:0.5b API returns a response, TTS plays it.
 - [x] test_resume_podcast: Playback resumes at next line after response.
-- [x] test_tie_stg1: You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”), press “i” to interrupt, type a question, 
-hear a response (e.g., “That’s from NOAA”), and the podcast resumes with the next line. 
-It’s clunky—manual interrupts, no real STT, no context adjustment—but it works.
 
 5. Client
 
@@ -41,6 +38,11 @@ The audioCallback function captures the audio data and puts it into an asynchron
 The sendAudio function runs in a loop, fetching audio data from the queue and sending it to the WebSocket server.
 - Receives Audio:
 The receiveAudio function continuously listens for messages from the WebSocket server and playbacks the received audio file.
+
+6. Integrate client with server and tie the workflow 
+You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”), press “i” to interrupt, type a question, 
+hear a response (e.g., “That’s from NOAA”), and the podcast resumes with the next line. 
+It’s clunky—manual interrupts, no real STT, no context adjustment—but it works.
 
 
 # Stage 2: Intermediate – Robust Pipeline
