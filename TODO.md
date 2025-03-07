@@ -30,7 +30,7 @@ Tests:
 - [x] test_resume_podcast: Playback resumes at next line after response.
 
 5. Client
-
+- implement webrtc for low latency
 - Client Side Code Records Audio Stream:
 The sendAudio function initializes an audio input stream using sounddevice.
 The audioCallback function captures the audio data and puts it into an asynchronous queue.
@@ -66,12 +66,14 @@ Components:
 3. Interruption Detection:
 - Integrate Whisper (e.g., Tiny) for real-time STT with VAD (e.g., WebRTC VAD).
 - Trigger on voice detection instead of manual input.
+- https://github.com/SYSTRAN/faster-whisper
+  - https://github.com/GRVYDEV/S.A.T.U.R.D.A.Y/blob/18b40f751bb663f4d8f9fe01c58772aa59f831a4/stt/servers/faster-whisper-api/FastapiServer.py#L45
+- ** https://github.com/DongKeon/webrtc-whisper-asr
 
 4. Response Generation:
 - Pass podcast context (last 1-2 lines + next 1-2 lines) + user question to Ollama qwen:0.5b.
 - Handle off-topic questions with a fallback (e.g., “Let’s stick to the topic”).
 - Play response with TTS, overlapping API call with a buffer phrase (e.g., “Good question…”).
-- generation strategy for long form podcast. 10 topics                                
 - if answer not known about a question, ask "Would you like me to look this up?". wait for response
 	 if yes, look it up online (TODO: online web search without detailed report) -> https://python.langchain.com/docs/integrations/tools/ddg/
 		 respond by combining the answer and the next point in transcript
@@ -116,7 +118,8 @@ Components:
 - Pay attention to the voice cloning instructions in xtts-server: Note on creating samples for quality voice cloning
 - Fade audio in/out at interrupts for polish.
 - add received/send audio to a queue from/to websockets
-- * collect stream in a queue for 4 seconds and then stream the first 2 seconds and iterate sliding window to always keep 2 seconds in buffer.
+- collect stream in a queue for 4 seconds and then stream the first 2 seconds and iterate sliding window to always keep 2 seconds in buffer.
+- https://github.com/KoljaB/RealtimeTTS
 
 2. Interruption Detection:
 - Optimize STT (e.g., Distil-Whisper + GPU) for <100ms latency.
@@ -124,7 +127,6 @@ Components:
 - Add a button interrupt.
 - whisper stream: 
   - https://github.com/QuentinFuxa/whisper_streaming_web
-  - https://github.com/SYSTRAN/faster-whisper
 
 3. Response Generation:
 - Full context awareness: Pass entire script history + source material summary to ollama qwen.
@@ -152,3 +154,8 @@ Done Looks Like:
 You’re listening (“CO2 hit 420 ppm…”), say “Source?”, it fades out, responds (“NOAA’s Mauna Loa—great catch!”), and 
 resumes (“With that 420 ppm driving storms…”). It’s fast, smooth, and sounds like a real host reacting live.
 
+
+timeline:
+MVP: 1-2 days if STT stubs are fast, focusing on playback and Grok.
+Intermediate: 3-5 days to integrate STT and basic context, tweaking as you go.
+Refined: 5-7 days for polish, depending on hardware and API speed.

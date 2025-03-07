@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .ws import router as ws_router
+from .webrtc import router as wrtc_router
 
 router = APIRouter(prefix="/v1")
-router.include_router(ws_router)
+router.include_router(wrtc_router)
