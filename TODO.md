@@ -30,14 +30,15 @@ Tests:
 - [x] test_resume_podcast: Playback resumes at next line after response.
 
 5. Client
-- implement webrtc for low latency
-- Client Side Code Records Audio Stream:
+- [x] implement webrtc for low latency
+- [x] Client Side Code Records Audio Stream:
 The sendAudio function initializes an audio input stream using sounddevice.
 The audioCallback function captures the audio data and puts it into an asynchronous queue.
-- Sends Audio Stream:
+- [x] Sends Audio Stream:
 The sendAudio function runs in a loop, fetching audio data from the queue and sending it to the WebSocket server.
 - Receives Audio:
 The receiveAudio function continuously listens for messages from the WebSocket server and playbacks the received audio file.
+
 
 6. Integrate client with server and tie the workflow 
 You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”) on the phone, press record button to interrupt, 

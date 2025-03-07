@@ -4,6 +4,7 @@ from typing import Any
 
 import anyio
 import fastapi
+import socketio
 from arq import create_pool
 from arq.connections import RedisSettings
 from fastapi import APIRouter, FastAPI
@@ -56,6 +57,9 @@ async def close_redis_queue_pool() -> None:
 
 
 # -------------- application --------------
+sio = socketio.AsyncClient()
+
+
 async def set_threadpool_tokens(number_of_tokens: int = 100) -> None:
     limiter = anyio.to_thread.current_default_thread_limiter()
     limiter.total_tokens = number_of_tokens
@@ -94,6 +98,8 @@ def lifespan_factory(
         # settings.MODELS["sentence_transformer"] = SentenceTransformer(
         #     "all-MiniLM-L6-v2"
         # )
+        SIGNALING_SERVER_URL = "http://192.168.0.105:3500"
+        await sio.connect(SIGNALING_SERVER_URL)
 
         yield
 
@@ -183,8 +189,6 @@ def create_application(
     if isinstance(settings, EnvironmentSettings):
         if settings.ENVIRONMENT != EnvironmentOption.PRODUCTION:
             docs_router = APIRouter()
-            # if settings.ENVIRONMENT != EnvironmentOption.LOCAL:
-            #     docs_router = APIRouter(dependencies=[Depends(get_current_superuser)])
 
             @docs_router.get("/docs", include_in_schema=False)
             async def get_swagger_documentation() -> fastapi.responses.HTMLResponse:

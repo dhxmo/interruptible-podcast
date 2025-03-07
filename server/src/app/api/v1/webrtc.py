@@ -1,62 +1,123 @@
+import base64
+import os
+import wave
+from datetime import datetime
+
+import numpy as np
 import whisper
-from aiortc import RTCPeerConnection, RTCSessionDescription, MediaStreamTrack
-from fastapi import WebSocket, APIRouter
+from aiortc import (
+    RTCPeerConnection,
+    RTCDataChannel,
+    RTCSessionDescription,
+    RTCIceCandidate,
+)
+from fastapi import APIRouter
 
-router = APIRouter(tags=["ws"])
+from ...core.setup import sio
+
+router = APIRouter(tags=["wrtc"])
 
 
+pc = RTCPeerConnection()
 model = whisper.load_model("tiny")
-pcs = set()
 
-class AudioProcessor(MediaStreamTrack):
-    kind = "audio"
+# File setup
+AUDIO_FILE = "streamed_audio.wav"
+SAMPLE_RATE = 16000
+CHANNELS = 1
+SAMPLE_WIDTH = 2  # 16-bit PCM
 
-    def __init__(self, track):
-        super().__init__()
-        self.track = track
-        self.audio_buffer = []
+# Create/Open WAV file for writing
+if os.path.exists(AUDIO_FILE):
+    os.remove(AUDIO_FILE)  # Remove old file before starting a new one
 
-    async def recv(self):
-        frame = await self.track.recv()
-        self.audio_buffer.append(frame.to_ndarray())
+wav_file = wave.open(AUDIO_FILE, "wb")
+wav_file.setnchannels(CHANNELS)
+wav_file.setsampwidth(SAMPLE_WIDTH)
+wav_file.setframerate(SAMPLE_RATE)
 
-        # Process every 500ms of audio
-        if len(self.audio_buffer) >= 50:  # Assuming 100fps audio
-            audio_data = b"".join(self.audio_buffer)
-            with open("temp.wav", "wb") as f:
-                f.write(audio_data)
-            self.audio_buffer = []
 
-            result = model.transcribe("temp.wav")
-            return result["text"]
+@sio.on("sdp")
+async def process_sdp(data: dict):
+    """Handle SDP messages from React Native client"""
+    if data["type"] == "offer":
+        offer = RTCSessionDescription(sdp=data["sdp"], type=data["type"])
+        await pc.setRemoteDescription(offer)  # Must be set first!
 
-        return frame  # Pass audio through
+        answer = await pc.createAnswer()
+        await pc.setLocalDescription(answer)  # Set local before sending
 
-@router.websocket("/ws/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str):
-    await websocket.accept()
-    pcs.add(RTCPeerConnection())
+        await sio.emit("sdp", {"type": "answer", "sdp": answer.sdp})
 
-    @pcs[-1].on("track")
-    def on_track(track):
-        if track.kind == "audio":
-            processor = AudioProcessor(track)
-            pcs[-1].addTrack(processor)
 
-    while True:
-        try:
-            data = await websocket.receive_json()
-            if "sdp" in data:
-                desc = RTCSessionDescription(sdp=data["sdp"], type="offer")
-                await pcs[-1].setRemoteDescription(desc)
-                answer = await pcs[-1].createAnswer()
-                await pcs[-1].setLocalDescription(answer)
-                await websocket.send_json({"sdp": pcs[-1].localDescription.sdp})
-            elif "candidate" in data:
-                await pcs[-1].addIceCandidate(data["candidate"])
-        except Exception as e:
-            print(f"Error: {e}")
-            break
+@sio.on("ICEcandidate")
+async def process_ice(data):
+    """Handle ICE candidates"""
+    candidate_data = data.get("candidate")
+    if candidate_data:
+        # Convert dict to RTCIceCandidate object
+        candidate = RTCIceCandidate(
+            component=1,  # Usually 1 for RTP
+            foundation="foundation",  # Placeholder, not required
+            priority=0,  # Placeholder, not required
+            protocol="udp",  # Extract from candidate_data if needed
+            ip=candidate_data["candidate"].split(" ")[4],  # Extract IP
+            port=int(candidate_data["candidate"].split(" ")[5]),  # Extract port
+            type=candidate_data["candidate"].split(" ")[
+                7
+            ],  # Extract type (host, srflx, relay)
+            sdpMid=candidate_data.get("sdpMid"),
+            sdpMLineIndex=candidate_data.get("sdpMLineIndex"),
+        )
 
-    await pcs[-1].close()
-    pcs.remove(pcs[-1])
+        await pc.addIceCandidate(candidate)
+
+
+def save_wav(filename, audio_data, sample_rate=16000):
+    """Save raw PCM data as a WAV file"""
+    with wave.open(filename, "wb") as wf:
+        wf.setnchannels(1)  # Mono audio
+        wf.setsampwidth(2)  # 16-bit PCM
+        wf.setframerate(sample_rate)
+        wf.writeframes(audio_data)
+
+
+@pc.on("datachannel")
+def on_datachannel(channel: RTCDataChannel):
+    """Handle WebRTC DataChannel for PCM audio streaming"""
+    print("🎙️ DataChannel opened!")
+
+    @channel.on("message")
+    async def on_message(audio_data):
+        # Append PCM data to WAV file
+        wav_file.writeframes(audio_data)
+
+        # TODO: figure out live streaming transcription
+        # try:
+        #     pcm_bytes = base64.b64decode(audio_data)
+        #     int16_data = np.frombuffer(pcm_bytes, dtype=np.int16)  # Convert buffer to int16 array
+        #     float32_data = int16_data.astype(np.float32) / 32768.0  # Normalize to float32 [-1.0, 1.0]
+        #
+        #     # Check if audio contains valid speech
+        #     if np.abs(float32_data).max() > 0.01:
+        #         transcription = transcribe_audio(int16_data)
+        #         print(f"📝 Transcribed Text: {transcription}")
+        #         # channel.send(transcription)
+        #     else:
+        #         print("⚠️ No valid audio detected.")
+        # except Exception as e:
+        #     print("❌ Base64 Decoding Error:", e)
+
+
+def transcribe_audio(audio_data):
+    """Run Whisper ASR on received Opus audio"""
+    print("🔎 Running Whisper ASR...")
+    result = model.transcribe(audio_data)
+    return result["text"]
+
+
+@pc.on("close")
+def on_close():
+    """Close WAV file when WebRTC session ends"""
+    print("🛑 Closing audio file.")
+    wav_file.close()

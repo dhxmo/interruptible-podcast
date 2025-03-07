@@ -1,5 +1,5 @@
 {
-  "name": "webrtc_client",
+  "name": "client",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -11,8 +11,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "react": "19.0.0",
     "react-native": "0.78.0",
+    "react-native-audio-record": "^0.2.2",
+    "react-native-live-audio-stream": "^1.1.1",
     "react-native-webrtc": "^124.0.5",
     "socket.io-client": "^4.8.1"
   },
