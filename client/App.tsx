@@ -25,7 +25,7 @@ function App(): React.JSX.Element {
   const SIGNALING_SERVER_URL = 'http://192.168.0.105:3500';
   const socket = io(SIGNALING_SERVER_URL);
 
-
+  const [audioStream, setAudioStream] = useState(null);
 
   useEffect(() => {
     // ✅ Request Microphone Permission (Android)
@@ -55,25 +55,25 @@ function App(): React.JSX.Element {
 
       peerConnection.current = new RTCPeerConnection(configuration);
 
-      dataChannel.current = peerConnection.current.createDataChannel('audio');
-      console.log('📡 Created DataChannel:', dataChannel.current);
+      // dataChannel.current = peerConnection.current.createDataChannel('audio');
+      // console.log('📡 Created DataChannel:', dataChannel.current);
 
       // ✅ Ensure DataChannel event bindings happen immediately
-      dataChannel.current.onopen = () => {
-        console.log('✅ DataChannel Open - Ready to send audio!');
-        isWebRTCReady.current = true; // ✅ Mark WebRTC as ready
-      };
+      // dataChannel.current.onopen = () => {
+      //   console.log('✅ DataChannel Open - Ready to send audio!');
+      //   isWebRTCReady.current = true; // ✅ Mark WebRTC as ready
+      // };
 
-      dataChannel.current.onclose = () => {
-        console.log('❌ DataChannel Closed!');
-        isWebRTCReady.current = false; // Reset WebRTC status
-      };
+      // dataChannel.current.onclose = () => {
+      //   console.log('❌ DataChannel Closed!');
+      //   isWebRTCReady.current = false; // Reset WebRTC status
+      // };
 
-      dataChannel.current.onerror = (error) => console.error('🚨 DataChannel Error:', error);
+      // dataChannel.current.onerror = (error) => console.error('🚨 DataChannel Error:', error);
 
-      dataChannel.current.onmessage = (event) => {
-        console.log('📜 Received Transcription:', event.data);
-      };
+      // dataChannel.current.onmessage = (event) => {
+      //   console.log('📜 Received Transcription:', event.data);
+      // };
 
       // Send ICE candidates to signaling server
       peerConnection.current.onicecandidate = (event) => {
@@ -81,6 +81,13 @@ function App(): React.JSX.Element {
           console.log('🌍 Sending ICE Candidate:', event.candidate);
           socket.emit('ICEcandidate', { candidate: event.candidate });
         }
+      };
+
+      // Handle incoming audio stream from server
+      peerConnection.current.ontrack = (event) => {
+        const stream = event.streams[0];
+        console.log('Received audio stream from server:', stream);
+        setAudioStream(stream); // Store the stream for playback
       };
 
       // ✅ Wait for remote SDP Answer before proceeding

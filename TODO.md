@@ -64,14 +64,7 @@ Components:
   - https://github.com/daswer123/xtts-api-server/tree/main 
   - rickman : https://www.youtube.com/watch?v=FVf4vgK1NIA
 
-3. Interruption Detection:
-- Integrate Whisper (e.g., Tiny) for real-time STT with VAD (e.g., WebRTC VAD).
-- Trigger on voice detection instead of manual input.
-- https://github.com/SYSTRAN/faster-whisper
-  - https://github.com/GRVYDEV/S.A.T.U.R.D.A.Y/blob/18b40f751bb663f4d8f9fe01c58772aa59f831a4/stt/servers/faster-whisper-api/FastapiServer.py#L45
-- ** https://github.com/DongKeon/webrtc-whisper-asr
-
-4. Response Generation:
+3. Response Generation:
 - Pass podcast context (last 1-2 lines + next 1-2 lines) + user question to Ollama qwen:0.5b.
 - Handle off-topic questions with a fallback (e.g., “Let’s stick to the topic”).
 - Play response with TTS, overlapping API call with a buffer phrase (e.g., “Good question…”).
@@ -79,25 +72,23 @@ Components:
 	 if yes, look it up online (TODO: online web search without detailed report) -> https://python.langchain.com/docs/integrations/tools/ddg/
 		 respond by combining the answer and the next point in transcript
 
-5. Podcast Generation:
+4. Podcast Generation:
 - Generate podcast script from detailed report
 - keep context across chunks 
 - https://github.com/souzatharsis/podcastfy
 
-6. Context Resumption:
+5. Context Resumption:
 - Basic script adjustment: Ollama qwen:0.5b suggests a transition phrase (e.g., “Back to CO2… . flow back to next talking point”).
 - Resume from the interrupted point or next logical spot.
 
-7. Client
+6. Client
 - add clerk auth to client and server
-- receiveAudio: On receive adds to queue. Fetches from queue and playbacks the received audio file.
 
 
 ### TDD Plan:
 Tests:
 - test_deep_research: Create detailed report from a topic
 - test_stream_podcast: Streams chunks and tracks position.
-- test_voice_interrupt: VAD + STT detects speech and pauses.
 - test_search_web_for_topic: Search web for topic and return a summary response ()
 - test_contextual_response: Mock ollama:0.5b uses context, returns relevant answer.
 - test_podcast_generation: Generate podcast script from detailed report
@@ -122,24 +113,17 @@ Components:
 - collect stream in a queue for 4 seconds and then stream the first 2 seconds and iterate sliding window to always keep 2 seconds in buffer.
 - https://github.com/KoljaB/RealtimeTTS
 
-2. Interruption Detection:
-- Optimize STT (e.g., Distil-Whisper + GPU) for <100ms latency.
-- Fine-tune VAD (e.g., Silero) for zero false positives/negatives.
-- Add a button interrupt.
-- whisper stream: 
-  - https://github.com/QuentinFuxa/whisper_streaming_web
-
-3. Response Generation:
+2. Response Generation:
 - Full context awareness: Pass entire script history + source material summary to ollama qwen.
 - Dynamic tone matching (casual, formal, etc.) based on podcast style.
 - Pre-generate fallback responses for common off-topic questions.
 
-4. Context Resumption:
+3. Context Resumption:
 - Rewrite the script post-interruption with Ollama qwn:0.5b for seamless integration (e.g., weave the answer into the next segment).
 - Randomize transition phrases for variety.
 - Smooth audio splicing with fades and overlaps.
 
-5. Client:
+4. Client:
 - add Siri like animation to halo
 - add proper input + send button to begin
 
@@ -147,8 +131,7 @@ Components:
 ### TDD Plan:
 Tests:
 - test_real_time_script: Script generates ahead, adapts to interrupts.
-- test_low_latency_interrupt: STT triggers in <100ms, no lag.
-- test_dynamic_rewrite: Mock Grok rewrites script based on response.
+- test_dynamic_rewrite: Mock qwen rewrites script based on response.
 - test_audio_polish: Fades and transitions sound natural.
 
 Done Looks Like:
@@ -157,6 +140,16 @@ resumes (“With that 420 ppm driving storms…”). It’s fast, smooth, and so
 
 
 timeline:
-MVP: 1-2 days if STT stubs are fast, focusing on playback and Grok.
+MVP: 1-2 days if STT stubs are fast, focusing on playback and qwen.
 Intermediate: 3-5 days to integrate STT and basic context, tweaking as you go.
 Refined: 5-7 days for polish, depending on hardware and API speed.
+
+
+# PROGRESS REPORT
+
+9th Mar '25: 0113
+the MVP on the server side was relatively simple. the client is messing with me. tried react native, but that stupid 
+framework doesnt have access to the core audio player API, so i'm not able to buffer the audio received from the server.
+decided to take a couple days to study webRTC and kotlin properly. will study for the next 3 days, and start implementation 
+again starting 11th
+Minor setback. will accelerate past it.
