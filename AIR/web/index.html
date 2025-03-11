@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIR</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .container {
+            background: white;
+            height: 350px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .row {
+            margin-bottom: 12px;
+        }
+        .row2 {
+            height: 150px;
+        }
+        input, select {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            outline: none;
+            transition: border-color 0.2s ease-in-out;
+        }
+        input:focus, select:focus {
+            border-color: #007AFF;
+        }
+        button {
+            cursor: pointer;
+            background-color: #f8f8f8;
+            color: #333;
+            border: 1px solid #ccc;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #e6e6e6;
+        }
+        button.interrupt {
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        button.interrupt:hover {
+            background-color: #e6e6e6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <input type="text" placeholder="What do you wanna talk about?">
+            <select>
+                <option>New-like</option>
+                <option>Historical</option>
+                <option>Scientific</option>
+                <option>Explainer</option>
+                <option>Opinionated</option>
+                <option>Dramatic</option>
+                <option>Memoir</option>
+                <option>Meditative</option>
+                <option>Philosophical</option>
+                <option>Tech & Futurism</option>
+            </select>
+        </div>
+        <div class="row">
+            <button>Submit</button>
+        </div>
+        <div class="row2">
+        </div>
+        <div class="row">
+            <button class="interrupt">Interrupt</button>
+        </div>
+    </div>
+</body>
+</html>

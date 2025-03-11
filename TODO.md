@@ -29,16 +29,7 @@ Tests:
 - [x] test_response_generation: Mock Ollama qwen:0.5b API returns a response, TTS plays it.
 - [x] test_resume_podcast: Playback resumes at next line after response.
 
-5. Client
-- establish connection to backend
-- send prompt 
-- stream pre-generated text audio to client
-- on voice interruption, listen and speech to text stream
-- respond with answer to interruption
-- resume from the next line and continue flow
-
-
-6. Integrate client with server and tie the workflow 
+5. Integrate client with server and tie the workflow 
 You run the program, hear a podcast line (e.g., “CO2 hit 420 ppm…”) on the phone, press record button to interrupt, 
 say a question, hear a response (e.g., “That’s from NOAA”), and the podcast resumes with the next line where it was cut off. 
 It’s clunky—manual interrupts, no real STT, no context adjustment—but it works.

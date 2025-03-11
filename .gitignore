@@ -3,6 +3,8 @@ __pycache__/
 .env
 media/
 hls_media/
+whisper_streaming_web/
+server/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
