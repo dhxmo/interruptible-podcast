@@ -98,7 +98,7 @@ def lifespan_factory(
         # settings.MODELS["sentence_transformer"] = SentenceTransformer(
         #     "all-MiniLM-L6-v2"
         # )
-        SIGNALING_SERVER_URL = "http://192.168.0.105:3500"
+        SIGNALING_SERVER_URL = "http://0.0.0.0:3500"
         await sio.connect(SIGNALING_SERVER_URL)
 
         yield

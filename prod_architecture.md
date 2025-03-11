@@ -1,3 +1,5 @@
+on the client side, create app for Android/iOS. on the server side is as follows:
+
 my boy chatgpt hooked this up. verify with exert and execute after validation
 
 # Production Setup for WebRTC-Based ASR (Speech-to-Text) 
@@ -43,46 +45,8 @@ For a real-time AI audio streaming system like yours, production requires three 
 - Run on AWS EC2, DigitalOcean Droplet, GCP VM
 - Use Kubernetes (K8s) + Nginx
 - Use Docker + Docker Compose for easier scaling
+---> implement redis with clusters
 
-- 📌 Example Production-Ready Signaling Server
-
-```python
-
-from fastapi import FastAPI, WebSocket
-import socketio
-
-app = FastAPI()
-sio = socketio.AsyncServer(async_mode="asgi")
-socket_app = socketio.ASGIApp(sio, app)
-
-@sio.event
-async def connect(sid, environ):
-    print(f"Client {sid} connected")
-
-@sio.event
-async def sdp(sid, data):
-    """Handles SDP Exchange"""
-    target = data["target"]
-    await sio.emit("sdp", data, to=target)
-
-@sio.event
-async def ice_candidate(sid, data):
-    """Handles ICE Candidate Exchange"""
-    target = data["target"]
-    await sio.emit("ice_candidate", data, to=target)
-
-@sio.event
-async def disconnect(sid):
-    print(f"Client {sid} disconnected")
-
-app.mount("/", socket_app)
-
-# Run with Uvicorn
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-    
-```
 
 # 2. WebRTC Media Server (Janus / Mediasoup)
  
@@ -196,3 +160,5 @@ async def websocket_endpoint(websocket: WebSocket):
 ```
 
 This ensures low latency, high scalability, and real-time ASR transcription.
+
+# 8. look at Selective Forwarding Unit (SFU) for further scalability

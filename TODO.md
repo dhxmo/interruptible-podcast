@@ -30,14 +30,12 @@ Tests:
 - [x] test_resume_podcast: Playback resumes at next line after response.
 
 5. Client
-- [x] implement webrtc for low latency
-- [x] Client Side Code Records Audio Stream:
-The sendAudio function initializes an audio input stream using sounddevice.
-The audioCallback function captures the audio data and puts it into an asynchronous queue.
-- [x] Sends Audio Stream:
-The sendAudio function runs in a loop, fetching audio data from the queue and sending it to the WebSocket server.
-- Receives Audio:
-The receiveAudio function continuously listens for messages from the WebSocket server and playbacks the received audio file.
+- establish connection to backend
+- send prompt 
+- stream pre-generated text audio to client
+- on voice interruption, listen and speech to text stream
+- respond with answer to interruption
+- resume from the next line and continue flow
 
 
 6. Integrate client with server and tie the workflow 
@@ -81,8 +79,8 @@ Components:
 - Basic script adjustment: Ollama qwen:0.5b suggests a transition phrase (e.g., “Back to CO2… . flow back to next talking point”).
 - Resume from the interrupted point or next logical spot.
 
-6. Client
-- add clerk auth to client and server
+6. User Speech to text Whisper stream
+- https://github.com/DongKeon/webrtc-whisper-asr
 
 
 ### TDD Plan:
@@ -117,15 +115,26 @@ Components:
 - Full context awareness: Pass entire script history + source material summary to ollama qwen.
 - Dynamic tone matching (casual, formal, etc.) based on podcast style.
 - Pre-generate fallback responses for common off-topic questions.
+- Produce taking user input into consideration for tone 
+    - split user input  for topic and tone
+        - send topic for the usual processing. use tone to inform the podcast script
+```
+            > News-like – Factual, objective, and serious.
+            > Historical – Narrative-driven, often analytical.
+            > Scientific – Data-driven, expert-led, sometimes technical.
+            > Explainer – Simplified breakdowns of complex topics.
+            > Opinionated - Strong personal takes on topics.
+            > Dramatic – Intense, theatrical, or emotionally charged.
+            > Personal / Memoir – First-person storytelling, diary-style.
+            > Meditative / Mindfulness – Calm, reflective, often guided practices.
+            > Philosophical / Thoughtful – Deep discussions on abstract topics.
+            > Tech & Futurism – Discussing innovations and future trends.
+```
 
 3. Context Resumption:
 - Rewrite the script post-interruption with Ollama qwn:0.5b for seamless integration (e.g., weave the answer into the next segment).
 - Randomize transition phrases for variety.
 - Smooth audio splicing with fades and overlaps.
-
-4. Client:
-- add Siri like animation to halo
-- add proper input + send button to begin
 
 
 ### TDD Plan:
