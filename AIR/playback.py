@@ -1,15 +1,22 @@
 import asyncio
+import io
+import json
 import os
 import queue
 import threading
 import time
+import wave
 
+import aiofiles
 import numpy as np
 import playsound
 import sounddevice as sd
 import whisper
 from gtts import gTTS
 from fastapi import WebSocket
+from pydub import AudioSegment
+from starlette.requests import Request
+from starlette.responses import StreamingResponse
 
 from AIR.ollama import ContentGenerator
 from AIR.templates import interruption_handle_template
@@ -23,14 +30,15 @@ podcast_script = [
     "Thanks for listening, stay tuned for more updates next week!",
 ]
 
-# Global variables
-current_line = 0
-stop_flag = False
-audio_queue = queue.Queue()
-interrupt_queue = queue.Queue()  # To signal interruptions and resume points
 
-
-# -- redundant. Send audio chunks to client
+# # Global variables
+# current_line = 0
+# stop_flag = False
+# audio_queue = queue.Queue()
+# interrupt_queue = queue.Queue()  # To signal interruptions and resume points
+#
+#
+# # -- redundant. Send audio chunks to client
 def generate_audio_files(script):
     """Generate audio files for each line and save them"""
     for i, line in enumerate(script):
@@ -40,80 +48,83 @@ def generate_audio_files(script):
     return [f"line_{i}.mp3" for i in range(len(script))]
 
 
-# -- redundant
-def play_audio(audio_files, start_line=0):
-    """Play audio files sequentially from a given start line until stopped"""
-    global current_line, stop_flag
-    for i in range(start_line, len(audio_files)):
-        if stop_flag:
-            interrupt_queue.put(i)  # Signal interruption with current line
-            stop_flag = False  # Reset flag for next interruption
-            return  # Exit to wait for interruption handling
-        current_line = i
-        print(f"Playing line {i + 1}: {podcast_script[i]}")
-        playsound.playsound(audio_files[i])
-        time.sleep(0.5)  # Small pause between lines
-
-
-# -- use with websockets
-def audio_callback(indata, frames, time_info, status):
-    """Callback function for audio input"""
-    if status:
-        print(f"Audio status: {status}")
-    audio_queue.put(indata.copy())
-
-
-# -- redundant
-def listen_for_stop(model, sample_rate):
-    """Listen for 'STOP' command using Whisper"""
-    global stop_flag
-    block_duration = 2  # Record in 2-second chunks
-
-    with sd.InputStream(
-        samplerate=sample_rate,
-        channels=1,
-        callback=audio_callback,
-        blocksize=int(sample_rate * block_duration),
-    ):
-        print("Say 'STOP' to pause the podcast...")
-        while True:
-            if not audio_queue.empty():
-                audio_data = audio_queue.get()
-                audio_data = audio_data.flatten().astype(np.float32)
-                result = model.transcribe(audio_data, language="en")
-                transcribed_text = result["text"].lower()
-                print(f"Transcribed: '{transcribed_text}'")
-                if "stop" in transcribed_text:
-                    stop_flag = True
-                    print(f"Paused at line {current_line + 1}")
-
-
-llm = ContentGenerator()
+#
+#
+# # -- redundant
+# def play_audio(audio_files, start_line=0):
+#     """Play audio files sequentially from a given start line until stopped"""
+#     global current_line, stop_flag
+#     for i in range(start_line, len(audio_files)):
+#         if stop_flag:
+#             interrupt_queue.put(i)  # Signal interruption with current line
+#             stop_flag = False  # Reset flag for next interruption
+#             return  # Exit to wait for interruption handling
+#         current_line = i
+#         print(f"Playing line {i + 1}: {podcast_script[i]}")
+#
+#         playsound.playsound(audio_files[i])
+#         time.sleep(0.5)  # Small pause between lines
+#
+#
+# # -- use with websockets
+# def audio_callback(indata, frames, time_info, status):
+#     """Callback function for audio input"""
+#     if status:
+#         print(f"Audio status: {status}")
+#     audio_queue.put(indata.copy())
+#
+#
+# # -- redundant
+# def listen_for_stop(model, sample_rate):
+#     """Listen for 'STOP' command using Whisper"""
+#     global stop_flag
+#     block_duration = 2  # Record in 2-second chunks
+#
+#     with sd.InputStream(
+#         samplerate=sample_rate,
+#         channels=1,
+#         callback=audio_callback,
+#         blocksize=int(sample_rate * block_duration),
+#     ):
+#         print("Say 'STOP' to pause the podcast...")
+#         while True:
+#             if not audio_queue.empty():
+#                 audio_data = audio_queue.get()
+#                 audio_data = audio_data.flatten().astype(np.float32)
+#                 result = model.transcribe(audio_data, language="en")
+#                 transcribed_text = result["text"].lower()
+#                 print(f"Transcribed: '{transcribed_text}'")
+#                 if "stop" in transcribed_text:
+#                     stop_flag = True
+#                     print(f"Paused at line {current_line + 1}")
+#
+#
+# llm = ContentGenerator()
 
 
 # make async
-async def handle_user_interruption(next_line):
-    """Handle user question and generate response"""
-    user_input = "will AI take human jobs?"
-    next_question = "Today we'll explore how AI is transforming various industries."
-
-    current_context = """
-      - **User question**: '{user_input}' 
-      - **Next sentence**: '{next_question}' 
-    """
-    formatted_input = current_context.format(
-        user_input=user_input, next_question=next_question
-    )
-
-    response = llm.generate_content(formatted_input, interruption_handle_template)
-    print("interruption response", response)
-
-    # Convert response to audio
-    tts = gTTS(text=response, lang="en")
-    response_file = "response.mp3"
-    tts.save(response_file)
-    playsound.playsound(response_file)
-    os.remove(response_file)
+# async def handle_user_interruption(next_line):
+#     """Handle user question and generate response"""
+#     user_input = "will AI take human jobs?"
+#     next_question = "Today we'll explore how AI is transforming various industries."
+#
+#     current_context = """
+#       - **User question**: '{user_input}'
+#       - **Next sentence**: '{next_question}'
+#     """
+#     formatted_input = current_context.format(
+#         user_input=user_input, next_question=next_question
+#     )
+#
+#     response = llm.generate_content(formatted_input, interruption_handle_template)
+#     print("interruption response", response)
+#
+#     # Convert response to audio
+#     tts = gTTS(text=response, lang="en")
+#     response_file = "response.mp3"
+#     tts.save(response_file)
+#     playsound.playsound(response_file)
+#     os.remove(response_file)
 
 
 # def main():
@@ -183,3 +194,21 @@ async def handle_user_interruption(next_line):
 #         main()
 #     except KeyboardInterrupt:
 #         print("\nProgram terminated by user")
+
+
+# ---------------------------------------
+
+
+async def stream_audio_file(websocket: WebSocket, filename: str, chunk_size=1024):
+    """Stream audio file in chunks to the client"""
+    try:
+        async with aiofiles.open(filename, "rb") as audio_file:
+            while True:
+                chunk = await audio_file.read(chunk_size)
+                if not chunk:
+                    break
+                await websocket.send_bytes(chunk)
+        # Send a marker to indicate end of file
+        await websocket.send_text(json.dumps({"type": "end_of_file"}))
+    except Exception as e:
+        print(f"Error streaming audio: {e}")

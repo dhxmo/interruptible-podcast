@@ -1,164 +1,230 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AIR</title>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-        .container {
-            background: white;
-            height: 350px;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        .row {
-            margin-bottom: 12px;
-        }
-        .row2 {
-            height: 150px;
-        }
-        input, select {
-            padding: 12px;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            outline: none;
-            transition: border-color 0.2s ease-in-out;
-        }
-        input:focus, select:focus {
-            border-color: #007AFF;
-        }
-        button {
-            cursor: pointer;
-            background-color: #f8f8f8;
-            color: #333;
-            border: 1px solid #ccc;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 8px;
-            transition: all 0.2s ease-in-out;
-            font-weight: 500;
-        }
-        button:hover {
-            background-color: #e6e6e6;
-        }
-        button.interrupt {
-            background-color: #f8f8f8;
-            color: #333;
-        }
-        button.interrupt:hover {
-            background-color: #e6e6e6;
-        }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+      .container {
+        background: white;
+        height: 350px;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      .row {
+        margin-bottom: 12px;
+      }
+      .row2 {
+        height: 150px;
+      }
+      input,
+      select {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        outline: none;
+        transition: border-color 0.2s ease-in-out;
+      }
+      input:focus,
+      select:focus {
+        border-color: #007aff;
+      }
+      button {
+        cursor: pointer;
+        background-color: #f8f8f8;
+        color: #333;
+        border: 1px solid #ccc;
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+      }
+      button:hover {
+        background-color: #e6e6e6;
+      }
+      button.interrupt {
+        background-color: #f8f8f8;
+        color: #333;
+      }
+      button.interrupt:hover {
+        background-color: #e6e6e6;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="row">
-            <input type="text" placeholder="What do you wanna talk about?" id="inputPrompt">
-            <select id="selectTone">
-                <option value="">Select a tone</option>
-                <option value="news">News-like</option>
-                <option value="historical">Historical</option>
-                <option value="scientific">Scientific</option>
-                <option value="explainer">Explainer</option>
-                <option value="opinionated">Opinionated</option>
-                <option value="dramatic">Dramatic</option>
-                <option value="memoir">Memoir</option>
-                <option value="meditative">Meditative</option>
-                <option value="philosophical">Philosophical</option>
-                <option value="tech&futurism">Tech & Futurism</option>
-            </select>
-        </div>
-        <div class="row">
-            <button id="btnSubmit">Submit</button>
-        </div>
-        <div class="row2">
-        </div>
-        <div class="row">
-            <button id="btnInterrupt">Interrupt</button>
-        </div>
+      <div class="row">
+        <input
+          type="text"
+          placeholder="What do you wanna talk about?"
+          id="inputPrompt"
+        />
+        <select id="selectTone">
+          <option value="">Select a tone</option>
+          <option value="news">News-like</option>
+          <option value="historical">Historical</option>
+          <option value="scientific">Scientific</option>
+          <option value="explainer">Explainer</option>
+          <option value="opinionated">Opinionated</option>
+          <option value="dramatic">Dramatic</option>
+          <option value="memoir">Memoir</option>
+          <option value="meditative">Meditative</option>
+          <option value="philosophical">Philosophical</option>
+          <option value="tech&futurism">Tech & Futurism</option>
+        </select>
+      </div>
+      <div class="row">
+        <button id="btnSubmit">Submit</button>
+      </div>
+      <div class="row2">
+        <audio id="audioPlayer" controls></audio>
+      </div>
+      <div class="row">
+        <button id="btnInterrupt">Interrupt</button>
+      </div>
 
-        <p id="status"></p>
+      <p id="status"></p>
     </div>
 
     <script>
-        let websocket = null;
-        let userClosing = false;
+      let websocket = null;
 
-        const textStatus = document.getElementById("status");
-        const btnSubmit = document.getElementById("btnSubmit");
+      const textStatus = document.getElementById("status");
+      const btnSubmit = document.getElementById("btnSubmit");
 
-        const websocketUrl = "ws://localhost:8080/asr"
+      const websocketUrl = "ws://localhost:8080/asr";
 
-        async function setupWebSocket() {
-            return new Promise((resolve, reject) => {
-                try {
-                    websocket = new WebSocket(websocketUrl);
-                    websocket.binaryType = "arraybuffer";
-                } catch (error) {
-                    textStatus.textContent = "Invalid WebSocket URL. Please check and try again.";
-                    reject(error);
-                    return;
-                }
+      let audioQueue = [];
+      let isPlaying = false;
+      const audioPlayer = document.getElementById("audioPlayer");
+      audioPlayer.loop = false;
 
-                websocket.onopen = () => {
-                    textStatus.textContent = "Connected to server.";
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    sourceNode = audioContext.createBufferSource();
-                    resolve();
-                };
+      const btnInterrupt = document.getElementById("btnInterrupt");
 
-                websocket.onclose = () => {
-                    if (userClosing) {
-                        textStatus.textContent = "WebSocket closed by user.";
-                    } else {
-                        textStatus.textContent =
-                            "Disconnected from the WebSocket server. (Check logs if model is loading.)";
-                    }
-                    userClosing = false;
-                };
+      function playNextAudio() {
+        if (audioQueue.length > 0 && !isPlaying) {
+          isPlaying = true;
+          const audioUrl = audioQueue.shift();
+          audioPlayer.src = audioUrl;
+          audioPlayer.play();
 
-                websocket.onerror = () => {
-                    textStatus.textContent = "Error connecting to WebSocket.";
-                    reject(new Error("Error connecting to WebSocket"));
-                };
-            });
-        }
-
-        async function submitPrompt() {
-            const inputPrompt = document.getElementById("inputPrompt").value;
-            const selectTone = document.getElementById("selectTone").value;
-
-            try {
-                if (!inputPrompt || !selectTone) {
-                    alert("Error: Please fill what you wanna talk about");
-                        return;
-                }
-                const data = JSON.stringify({inputPrompt: inputPrompt, tone: selectTone})
-
-                if(websocket.readyState === WebSocket.OPEN) {
-                    websocket.send(data);
-                }
-            } catch (err) {
-                textStatus.textContent = "Could not connect to WebSocket or access mic. Aborted.";
-                console.error(err);
+          audioPlayer.onended = () => {
+            isPlaying = false;
+            URL.revokeObjectURL(audioUrl); // Clean up
+            if (audioQueue.length > 0) {
+              playNextAudio(); // Only play next if there are more in queue
+            } else {
+              audioPlayer.src = ""; // Clear the source when done
+              btnInterrupt.disabled = true;
             }
+          };
+        } else if (audioQueue.length === 0 && !isPlaying) {
+          audioPlayer.src = ""; // Ensure player is cleared when queue is empty
+          btnInterrupt.disabled = true;
         }
+      }
 
-        btnSubmit.addEventListener("click", submitPrompt);
+      async function setupWebSocket() {
+        return new Promise((resolve, reject) => {
+          try {
+            websocket = new WebSocket(websocketUrl);
+            let audioBlobParts = [];
+          } catch (error) {
+            textStatus.textContent =
+              "Invalid WebSocket URL. Please check and try again.";
+            reject(error);
+            return;
+          }
 
-        setupWebSocket();
+          websocket.onopen = () => {
+            textStatus.textContent = "Connected to server.";
+            resolve();
+          };
+
+          websocket.onclose = () => {
+            textStatus.textContent = "WebSocket closed by user.";
+
+            while (audioQueue.length > 0) {
+              URL.revokeObjectURL(audioQueue.shift());
+            }
+            btnInterrupt.disabled = true;
+          };
+
+          websocket.onerror = () => {
+            textStatus.textContent = "Error connecting to WebSocket.";
+            reject(new Error("Error connecting to WebSocket"));
+          };
+
+          websocket.onmessage = (event) => {
+            if (event.data instanceof Blob) {
+              // Binary data (audio chunks)
+              audioBlobParts.push(event.data);
+            } else {
+              // Text message (JSON)
+              const message = JSON.parse(event.data);
+
+              if (message.type === "start_audio") {
+                audioBlobParts = []; // Reset for new audio file
+
+                if (message.index !== undefined) {
+                  totalLines = message.total;
+                }
+              } else if (message.type === "end_of_file") {
+                const audioBlob = new Blob(audioBlobParts, {
+                  type: "audio/mp3",
+                });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioQueue.push(audioUrl);
+                playNextAudio();
+              }
+            }
+          };
+        });
+      }
+
+      async function submitPrompt() {
+        const inputPrompt = document.getElementById("inputPrompt").value;
+        const selectTone = document.getElementById("selectTone").value;
+
+        try {
+          if (!inputPrompt || !selectTone) {
+            alert("Error: Please fill what you wanna talk about");
+            return;
+          }
+          const data = JSON.stringify({
+            inputPrompt: inputPrompt,
+            tone: selectTone,
+          });
+
+          if (websocket.readyState === WebSocket.OPEN) {
+            websocket.send(data);
+          }
+        } catch (err) {
+          textStatus.textContent =
+            "Could not connect to WebSocket or access mic. Aborted.";
+          console.error(err);
+        }
+      }
+
+      btnSubmit.addEventListener("click", submitPrompt);
+
+      function interruptPlayback() {}
+      btnInterrupt.addEventListener("click", interruptPlayback);
+
+      setupWebSocket();
     </script>
-
-</body>
+  </body>
 </html>

@@ -1,26 +1,15 @@
 import argparse
 import json
-
-# import logging
 import os
-import queue
-import time
-
-import playsound
-
-# from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from gtts import gTTS
 
-from AIR.playback import (
-    generate_audio_files,
-    podcast_script,
-    play_audio,
-    interrupt_queue,
-)
+from AIR.playback import generate_audio_files, podcast_script, stream_audio_file
+
+# from contextlib import asynccontextmanager
 
 # @asynccontextmanager
 # async def lifespan(app: FastAPI):
@@ -73,6 +62,9 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             parsed_data = json.loads(data)
 
+            if parsed_data.get("type") == "interrupt":
+                pass
+
             prompt = parsed_data.get("inputPrompt")
             tone = parsed_data.get("tone")
 
@@ -81,47 +73,14 @@ async def websocket_endpoint(websocket: WebSocket):
             # generate audio from script
             audio_files = generate_audio_files(podcast_script)
 
-            # # Load Whisper model once
-            # model = whisper.load_model("base")
-            # sample_rate = 16000
-            #
-            # # Start listening thread
-            # listen_thread = threading.Thread(target=listen_for_stop, args=(model, sample_rate))
-            # listen_thread.daemon = True
-            # listen_thread.start()
+            for audio_file in audio_files:
+                await websocket.send_text(
+                    json.dumps({"type": "start_audio", "filename": audio_file})
+                )
+                await stream_audio_file(websocket, audio_file)
 
-            # Playback loop
-            start_line = 0
-            while start_line < len(podcast_script):
-                # play line
-                play_audio(audio_files, start_line=start_line)
-                if not interrupt_queue.empty():
-                    paused_line = interrupt_queue.get()
-                    next_line = (
-                        podcast_script[paused_line + 1]
-                        if paused_line + 1 < len(podcast_script)
-                        else "That’s all for today!"
-                    )
-                    print("next_line", next_line)
-
-                    # Handle interruption and wait for it to complete
-                    # asyncio.run(handle_user_interruption(next_line))
-
-                    # Resume from next line
-                    start_line = paused_line + 1
-                    if start_line < len(podcast_script):
-                        print(f"Resuming from line {start_line + 1}...")
-                    else:
-                        print("Podcast complete!")
-                        break
-                else:
-                    print("Podcast complete naturally!")
-                    break
-
-            # Clean up audio files
-            for file in audio_files:
-                if os.path.exists(file):
-                    os.remove(file)
+                if os.path.exists(audio_file):
+                    os.remove(audio_file)
     except Exception as e:
         print("WebSocket connection closed:", e)
 
