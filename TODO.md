@@ -100,7 +100,11 @@ Components:
 - Fade audio in/out at interrupts for polish.
 - add received/send audio to a queue from/to websockets
 - collect stream in a queue for 4 seconds and then stream the first 2 seconds and iterate sliding window to always keep 2 seconds in buffer.
-- https://github.com/KoljaB/RealtimeTTS
+- find best for streaming
+  - https://github.com/KoljaB/RealtimeTTS
+  - https://github.com/remsky/Kokoro-FastAPI
+  - https://github.com/daswer123/xtts-api-server/tree/main
+
 
 2. Response Generation:
 - Full context awareness: Pass entire script history + source material summary to ollama qwen.

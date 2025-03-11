@@ -64,28 +64,101 @@
 <body>
     <div class="container">
         <div class="row">
-            <input type="text" placeholder="What do you wanna talk about?">
-            <select>
-                <option>New-like</option>
-                <option>Historical</option>
-                <option>Scientific</option>
-                <option>Explainer</option>
-                <option>Opinionated</option>
-                <option>Dramatic</option>
-                <option>Memoir</option>
-                <option>Meditative</option>
-                <option>Philosophical</option>
-                <option>Tech & Futurism</option>
+            <input type="text" placeholder="What do you wanna talk about?" id="inputPrompt">
+            <select id="selectTone">
+                <option value="">Select a tone</option>
+                <option value="news">News-like</option>
+                <option value="historical">Historical</option>
+                <option value="scientific">Scientific</option>
+                <option value="explainer">Explainer</option>
+                <option value="opinionated">Opinionated</option>
+                <option value="dramatic">Dramatic</option>
+                <option value="memoir">Memoir</option>
+                <option value="meditative">Meditative</option>
+                <option value="philosophical">Philosophical</option>
+                <option value="tech&futurism">Tech & Futurism</option>
             </select>
         </div>
         <div class="row">
-            <button>Submit</button>
+            <button id="btnSubmit">Submit</button>
         </div>
         <div class="row2">
         </div>
         <div class="row">
-            <button class="interrupt">Interrupt</button>
+            <button id="btnInterrupt">Interrupt</button>
         </div>
+
+        <p id="status"></p>
     </div>
+
+    <script>
+        let websocket = null;
+        let userClosing = false;
+
+        const textStatus = document.getElementById("status");
+        const btnSubmit = document.getElementById("btnSubmit");
+
+        const websocketUrl = "ws://localhost:8080/asr"
+
+        async function setupWebSocket() {
+            return new Promise((resolve, reject) => {
+                try {
+                    websocket = new WebSocket(websocketUrl);
+                    websocket.binaryType = "arraybuffer";
+                } catch (error) {
+                    textStatus.textContent = "Invalid WebSocket URL. Please check and try again.";
+                    reject(error);
+                    return;
+                }
+
+                websocket.onopen = () => {
+                    textStatus.textContent = "Connected to server.";
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    sourceNode = audioContext.createBufferSource();
+                    resolve();
+                };
+
+                websocket.onclose = () => {
+                    if (userClosing) {
+                        textStatus.textContent = "WebSocket closed by user.";
+                    } else {
+                        textStatus.textContent =
+                            "Disconnected from the WebSocket server. (Check logs if model is loading.)";
+                    }
+                    userClosing = false;
+                };
+
+                websocket.onerror = () => {
+                    textStatus.textContent = "Error connecting to WebSocket.";
+                    reject(new Error("Error connecting to WebSocket"));
+                };
+            });
+        }
+
+        async function submitPrompt() {
+            const inputPrompt = document.getElementById("inputPrompt").value;
+            const selectTone = document.getElementById("selectTone").value;
+
+            try {
+                if (!inputPrompt || !selectTone) {
+                    alert("Error: Please fill what you wanna talk about");
+                        return;
+                }
+                const data = JSON.stringify({inputPrompt: inputPrompt, tone: selectTone})
+
+                if(websocket.readyState === WebSocket.OPEN) {
+                    websocket.send(data);
+                }
+            } catch (err) {
+                textStatus.textContent = "Could not connect to WebSocket or access mic. Aborted.";
+                console.error(err);
+            }
+        }
+
+        btnSubmit.addEventListener("click", submitPrompt);
+
+        setupWebSocket();
+    </script>
+
 </body>
 </html>
