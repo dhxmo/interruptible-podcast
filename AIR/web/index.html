@@ -90,7 +90,7 @@
         <button id="btnSubmit">Submit</button>
       </div>
       <div class="row2">
-        <audio id="audioPlayer" controls></audio>
+<!--        <audio id="audioPlayer" controls></audio>-->
       </div>
       <div class="row">
         <button id="btnInterrupt">Interrupt</button>
@@ -109,39 +109,16 @@
 
       let audioQueue = [];
       let isPlaying = false;
-      const audioPlayer = document.getElementById("audioPlayer");
-      audioPlayer.loop = false;
+      // const audioPlayer = document.getElementById("audioPlayer");
+      // audioPlayer.loop = false;
 
       const btnInterrupt = document.getElementById("btnInterrupt");
-
-      function playNextAudio() {
-        if (audioQueue.length > 0 && !isPlaying) {
-          isPlaying = true;
-          const audioUrl = audioQueue.shift();
-          audioPlayer.src = audioUrl;
-          audioPlayer.play();
-
-          audioPlayer.onended = () => {
-            isPlaying = false;
-            URL.revokeObjectURL(audioUrl); // Clean up
-            if (audioQueue.length > 0) {
-              playNextAudio(); // Only play next if there are more in queue
-            } else {
-              audioPlayer.src = ""; // Clear the source when done
-              btnInterrupt.disabled = true;
-            }
-          };
-        } else if (audioQueue.length === 0 && !isPlaying) {
-          audioPlayer.src = ""; // Ensure player is cleared when queue is empty
-          btnInterrupt.disabled = true;
-        }
-      }
 
       async function setupWebSocket() {
         return new Promise((resolve, reject) => {
           try {
             websocket = new WebSocket(websocketUrl);
-            let audioBlobParts = [];
+            // let audioBlobParts = [];
           } catch (error) {
             textStatus.textContent =
               "Invalid WebSocket URL. Please check and try again.";
@@ -169,28 +146,7 @@
           };
 
           websocket.onmessage = (event) => {
-            if (event.data instanceof Blob) {
-              // Binary data (audio chunks)
-              audioBlobParts.push(event.data);
-            } else {
-              // Text message (JSON)
-              const message = JSON.parse(event.data);
 
-              if (message.type === "start_audio") {
-                audioBlobParts = []; // Reset for new audio file
-
-                if (message.index !== undefined) {
-                  totalLines = message.total;
-                }
-              } else if (message.type === "end_of_file") {
-                const audioBlob = new Blob(audioBlobParts, {
-                  type: "audio/mp3",
-                });
-                const audioUrl = URL.createObjectURL(audioBlob);
-                audioQueue.push(audioUrl);
-                playNextAudio();
-              }
-            }
           };
         });
       }
