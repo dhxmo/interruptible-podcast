@@ -1,186 +1,372 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AIR</title>
-    <style>
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: #f4f4f4;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, sans-serif;
-      }
-      .container {
-        background: white;
-        height: 350px;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        text-align: center;
-      }
-      .row {
-        margin-bottom: 12px;
-      }
-      .row2 {
-        height: 150px;
-      }
-      input,
-      select {
-        padding: 12px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        outline: none;
-        transition: border-color 0.2s ease-in-out;
-      }
-      input:focus,
-      select:focus {
-        border-color: #007aff;
-      }
-      button {
-        cursor: pointer;
-        background-color: #f8f8f8;
-        color: #333;
-        border: 1px solid #ccc;
-        padding: 12px 20px;
-        font-size: 16px;
-        border-radius: 8px;
-        transition: all 0.2s ease-in-out;
-        font-weight: 500;
-      }
-      button:hover {
-        background-color: #e6e6e6;
-      }
-      button.interrupt {
-        background-color: #f8f8f8;
-        color: #333;
-      }
-      button.interrupt:hover {
-        background-color: #e6e6e6;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <div class="row">
-        <input
-          type="text"
-          placeholder="What do you wanna talk about?"
-          id="inputPrompt"
-        />
-        <select id="selectTone">
-          <option value="">Select a tone</option>
-          <option value="news">News-like</option>
-          <option value="historical">Historical</option>
-          <option value="scientific">Scientific</option>
-          <option value="explainer">Explainer</option>
-          <option value="opinionated">Opinionated</option>
-          <option value="dramatic">Dramatic</option>
-          <option value="memoir">Memoir</option>
-          <option value="meditative">Meditative</option>
-          <option value="philosophical">Philosophical</option>
-          <option value="tech&futurism">Tech & Futurism</option>
-        </select>
-      </div>
-      <div class="row">
-        <button id="btnSubmit">Submit</button>
-      </div>
-      <div class="row2">
-<!--        <audio id="audioPlayer" controls></audio>-->
-      </div>
-      <div class="row">
-        <button id="btnInterrupt">Interrupt</button>
-      </div>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-      <p id="status"></p>
-    </div>
+		<title>AIR</title>
+		<link rel="icon" type="image/x-icon" href="web/favicon.ico">
+		<script src="web/dist/recorder.min.js" type="text/javascript"></script>
+		<style>
+			body {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				background-color: #f4f4f4;
+				font-family:
+					-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+					"Helvetica Neue", Arial, sans-serif;
+			}
+			.container {
+				background: white;
+				height: 350px;
+				padding: 20px;
+				border-radius: 12px;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+				text-align: center;
+			}
+			.row {
+				margin-bottom: 12px;
+			}
+			.row2 {
+				height: 150px;
+			}
+			input,
+			select {
+				padding: 12px;
+				font-size: 16px;
+				border-radius: 8px;
+				border: 1px solid #ddd;
+				outline: none;
+				transition: border-color 0.2s ease-in-out;
+			}
+			input:focus,
+			select:focus {
+				border-color: #007aff;
+			}
+			button {
+				cursor: pointer;
+				background-color: #f8f8f8;
+				color: #333;
+				border: 1px solid #ccc;
+				padding: 12px 20px;
+				font-size: 16px;
+				border-radius: 8px;
+				transition: all 0.2s ease-in-out;
+				font-weight: 500;
+			}
+			button:hover {
+				background-color: #e6e6e6;
+			}
+			button.interrupt {
+				background-color: #f8f8f8;
+				color: #333;
+			}
+			button.interrupt:hover {
+				background-color: #e6e6e6;
+			}
 
-    <script>
-      let websocket = null;
+			#status {
+				margin-top: 1rem;
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="row">
+				<input
+					type="text"
+					placeholder="What do you wanna talk about?"
+					id="inputPrompt"
+				/>
+				<select id="selectTone">
+					<option value="">Select a tone</option>
+					<option value="news">News-like</option>
+					<option value="historical">Historical</option>
+					<option value="scientific">Scientific</option>
+					<option value="explainer">Explainer</option>
+					<option value="opinionated">Opinionated</option>
+					<option value="dramatic">Dramatic</option>
+					<option value="memoir">Memoir</option>
+					<option value="meditative">Meditative</option>
+					<option value="philosophical">Philosophical</option>
+					<option value="tech&futurism">Tech & Futurism</option>
+				</select>
+			</div>
+			<div class="row">
+				<button id="btnSubmit">Submit</button>
+			</div>
+			<div class="row2">
+				<!--        <audio id="audioPlayer" controls></audio>-->
+			</div>
+			<div class="row">
+				<button id="btnInterrupt">Interrupt</button>
+			</div>
 
-      const textStatus = document.getElementById("status");
-      const btnSubmit = document.getElementById("btnSubmit");
+			<p id="status"></p>
+		</div>
 
-      const websocketUrl = "ws://localhost:8080/asr";
+		<script>
+			// network
+			let socket = null;
 
-      let audioQueue = [];
-      let isPlaying = false;
-      // const audioPlayer = document.getElementById("audioPlayer");
-      // audioPlayer.loop = false;
+			// audio
+			let recorder;
+			let isRecording = false;
 
-      const btnInterrupt = document.getElementById("btnInterrupt");
+			// playback
+			let audioQueue = [];
+			let isPlaying = false;
 
-      async function setupWebSocket() {
-        return new Promise((resolve, reject) => {
-          try {
-            websocket = new WebSocket(websocketUrl);
-            // let audioBlobParts = [];
-          } catch (error) {
-            textStatus.textContent =
-              "Invalid WebSocket URL. Please check and try again.";
-            reject(error);
-            return;
-          }
+			const textStatus = document.getElementById("status");
+			const btnSubmit = document.getElementById("btnSubmit");
+			const btnInterrupt = document.getElementById("btnInterrupt");
 
-          websocket.onopen = () => {
-            textStatus.textContent = "Connected to server.";
-            resolve();
-          };
+			async function submitPrompt() {
+				const inputPrompt = document.getElementById("inputPrompt").value;
+				const selectTone = document.getElementById("selectTone").value;
 
-          websocket.onclose = () => {
-            textStatus.textContent = "WebSocket closed by user.";
+				try {
+					if (!inputPrompt || !selectTone) {
+						alert("Error: Please fill what you wanna talk about");
+						return;
+					}
+					const data = JSON.stringify({
+						inputPrompt: inputPrompt,
+						tone: selectTone,
+					});
 
-            while (audioQueue.length > 0) {
-              URL.revokeObjectURL(audioQueue.shift());
-            }
-            btnInterrupt.disabled = true;
-          };
+					if (websocket.readyState === WebSocket.OPEN) {
+						websocket.send(data);
+					}
+				} catch (err) {
+					textStatus.textContent =
+						"Could not connect to WebSocket or access mic. Aborted.";
+					console.error(err);
+				}
+			}
 
-          websocket.onerror = () => {
-            textStatus.textContent = "Error connecting to WebSocket.";
-            reject(new Error("Error connecting to WebSocket"));
-          };
+			btnSubmit.addEventListener("click", submitPrompt);
 
-          websocket.onmessage = (event) => {
+			function startRecording() {
+				if (!isRecording) {
+					isRecording = true;
+					recorder.start();
+				}
+			}
 
-          };
-        });
-      }
+			async function stopRecording() {
+				if (isRecording) {
+					isRecording = false;
 
-      async function submitPrompt() {
-        const inputPrompt = document.getElementById("inputPrompt").value;
-        const selectTone = document.getElementById("selectTone").value;
+					try {
+						await recorder.stop();
 
-        try {
-          if (!inputPrompt || !selectTone) {
-            alert("Error: Please fill what you wanna talk about");
-            return;
-          }
-          const data = JSON.stringify({
-            inputPrompt: inputPrompt,
-            tone: selectTone,
-          });
+						if (!socket || socket.readyState !== WebSocket.OPEN) {
+							console.log("socket closed. reopening...");
+							try {
+								await initializeWebsocketAsync();
+							} catch (err) {
+								console.error("Error connecting websockets", err.message);
+								return;
+							}
+						}
 
-          if (websocket.readyState === WebSocket.OPEN) {
-            websocket.send(data);
-          }
-        } catch (err) {
-          textStatus.textContent =
-            "Could not connect to WebSocket or access mic. Aborted.";
-          console.error(err);
-        }
-      }
+						const stopMessage = JSON.stringify({
+							action: "stop_recording",
+						});
+						socket.send(stopMessage);
+					} catch (err) {
+						console.error("error stopping recording", err.message);
+					}
+				}
+			}
+			btnInterrupt.addEventListener("mousedown", startRecording);
+			btnInterrupt.addEventListener("mouseup", stopRecording);
 
-      btnSubmit.addEventListener("click", submitPrompt);
+			// mobile
+			btnInterrupt.addEventListener("touchstart", (e) => {
+				e.preventDefault();
+				startRecording;
+			});
+			btnInterrupt.addEventListener("touchend", (e) => {
+				e.preventDefault();
+				startRecording;
+			});
 
-      function interruptPlayback() {}
-      btnInterrupt.addEventListener("click", interruptPlayback);
+			let audioContext = new (window.AudioContext || window.webkitAudioContext)(
+				{
+					sampleRate: 16000,
+				}
+			);
 
-      setupWebSocket();
-    </script>
-  </body>
+			async function initSourceNode() {
+				try {
+					// GUM and pipe to media source node
+					const stream = await navigator.mediaDevices.getUserMedia({
+						audio: true,
+					});
+					return audioContext.createMediaStreamSource(stream);
+				} catch (err) {
+					btnInterrupt.style.display = "None";
+					let audioContext = new (window.AudioContext ||
+						window.webkitAudioContext)({ sampleRate: 16000 });
+					const stream = await navigator.mediaDevices.getUserMedia({
+						audio: true,
+					});
+					return audioContext.createMediaStreamSource(stream);
+				}
+			}
+
+			// https://github.com/mmig/opus-encdec?tab=readme-ov-file#general-config-options
+			async function initializeRecorder() {
+				// source node
+				const sourceNode = await initSourceNode();
+
+				// add config to recorder
+				const config = {
+					numberOfChannels: 1,
+					encoderSampleRate: 16000,
+					encoderFrameSize: 20,
+					maxFramesPerPage: 40,
+					encoderComplexity: 6,
+					encoderApplication: 2048,
+					originalSampleRate: 16000,
+					streamPages: true,
+					sourceNode: sourceNode,
+				};
+
+				recorder = new Recorder(config);
+
+				// recorder onstart, ondataavailable, onstop
+				recorder.onstart = () => {
+					textStatus.textContent = "Recording...";
+				};
+
+				let audioChunks = [];
+
+				recorder.ondataavailable = (buffer) => {
+					audioChunks.push(buffer);
+				};
+
+				recorder.onstop = () => {
+					textStatus.textContent = "Processing...";
+
+					// create blob from buffer chunks
+					const blob = new Blob(audioChunks, {
+						type: "audio/ogg; codecs=opus",
+					});
+
+					// clear chunk for next recording
+					audioChunks = [];
+
+					// send via socket to server
+					if (socket && socket.readyState === WebSocket.OPEN) {
+						console.log("ws sending", blob.size);
+						socket.send(blob);
+					} else {
+						console.error("socket not open. error sending audio");
+					}
+				};
+			}
+
+			// [HACK] buffer should be queue
+			function playAudioFromQ() {
+				if (audioQueue.length === 0 || isPlaying) {
+					return;
+				}
+
+				isPlaying = true;
+				const currentBlob = audioQueue.shift();
+				const audio = new Audio(URL.createObjectURL(currentBlob));
+
+				// -----------
+				audio.onerror = (error) => {
+					console.error("error in playback", error.mesage);
+					isPlaying = false;
+					playAudioFromQ();
+				};
+
+				// if blob done playing, play the next one
+				audio.onended = () => {
+					isPlaying = false;
+					playAudioFromQ();
+				};
+				// -----------
+
+				audio.play().catch((error) => {
+					console.error("error in playback", error.mesage);
+					isPlaying = false;
+					playAudioFromQ();
+				});
+			}
+
+			function qAudioPlayback(blob) {
+				audioQueue.push(blob);
+				playAudioFromQ();
+			}
+
+			async function initializeWebsocketAsync() {
+				return new Promise((resolve, reject) => {
+					// extract ws from url
+					let currentURL = window.location;
+					let wsProtocol = currentURL.protocol === "https" ? "wss:" : "ws:";
+					let wsURL = `${wsProtocol}//${currentURL.host}/ws`;
+					socket = new WebSocket(wsURL);
+
+				// -----------
+					socket.onopen = () => {
+						console.log("websocket conected");
+						textStatus.textContent = "Ready";
+						btnInterrupt.disabled = false;
+					};
+					socket.onclose = (event) => {
+						console.log("websocket closed", event.code, event.reason);
+						textStatus.textContent = "Disconnected";
+						btnInterrupt.disabled = true;
+						reject(new Error("websocket closed"));
+					};
+					socket.onerror = (error) => {
+						console.log("websocket error", error.message);
+						textStatus.textContent = "Error";
+						btnInterrupt.disabled = true;
+						reject(error);
+					};
+					socket.onmessage = (event) => {
+						if (event.data instanceof Blob) {
+							// handle audio data from the server. queue and playback
+							qAudioPlayback(event.data);
+						} else {
+							try {
+								const message = JSON.parse(event.data);
+
+								if (message.type === "error") {
+									console.error("error in server", message.message);
+									textStatus.textContent = "Server Error";
+								}
+							} catch (err) {
+								console.error("error reading websocket data", err.message);
+							}
+						}
+					};
+				// -----------
+				});
+			}
+
+			window.onload = async () => {
+				// initialize recorder
+				await initializeRecorder();
+				await recorder.initialize;
+
+				try {
+					await initializeWebsocketAsync();
+					console.log("initialized");
+				} catch (err) {
+					console.error("error connecting websocket:", err.message);
+				}
+			};
+		</script>
+	</body>
 </html>

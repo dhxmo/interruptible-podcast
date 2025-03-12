@@ -1,8 +1,9 @@
 import argparse
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 # from contextlib import asynccontextmanager
 
@@ -20,6 +21,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve static files
+app.mount("/web", StaticFiles(directory="web"), name="web")
 
 # -------------------------
 
@@ -44,7 +48,14 @@ with open("web/index.html", "r", encoding="utf-8") as f:
 
 @app.get("/")
 async def get():
-    return HTMLResponse(html)
+    return FileResponse("web/index.html")
+
+
+@app.websocket("/ws")
+async def ws_endpoint(websocket: WebSocket):
+    await websocket.accept()
+
+    print("connection established with client")
 
 
 if __name__ == "__main__":

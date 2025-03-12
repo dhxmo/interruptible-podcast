@@ -34,3 +34,6 @@
 STT: faster-whisper or whisper ggml-large-v2
 Text-generation: Llama 3 8B Instruct (Q4_K_M) or ollama mistral7b, qwen2.5, llama3.2, deepseekr1 (test and find best for our task)
 TTS: xTTS 
+
+
+
