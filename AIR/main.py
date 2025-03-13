@@ -1,4 +1,6 @@
 import argparse
+import uuid
+from collections import deque
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,7 +41,25 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
+
 # -------------------------
+class ClientManager:
+    def __init__(self):
+        self.sessions = {}
+
+    def create_session(self):
+        session_id = str(uuid.uuid4())
+        self.sessions[session_id] = {
+            "running_summary": "",
+            "web_search_results": [],
+            "research_loop_count": 0,
+            "audio_buffer": b"",
+            "conversation": "",
+            "llm_output_sentences": deque(),
+            "is_processing": False,
+        }
+        return session_id
+
 
 # Load demo HTML for the root endpoint
 with open("web/index.html", "r", encoding="utf-8") as f:

@@ -1,35 +1,58 @@
 import unittest
+import asyncio
+
+from AIR.src.deep_research.search import DeepResearcher
 
 
 class AIRTestCasesUnit(unittest.TestCase):
-    # --- input prompt to talking points + RAG
-    def test_deep_research_report_rag(self):
+    def setUp(self):
+        self.dr = DeepResearcher()
+
+    def test_web_search(self):
+        asyncio.run(self._web_search())
+
+    async def _web_search(self):
+        await self.dr.web_search_n_scrape("quantum computing")
+
+    def test_summarize_sources(self):
         pass
+
+    # --- input prompt to talking points + RAG
+    def test_deep_research_report(self):
+        return asyncio.run(self._ds_report())
+
+    async def _ds_report(self):
+        user_input = "find out about quantum computing"
+
+        research_summary = await self.dr.generate_report(user_input)
+
+        print("result", research_summary)
+        self.assertGreater(len(research_summary), 0)
 
     def test_podcast_talking_points_output(self):
-        pass
+        research_report = """
 
-    def test_generate_talking_points_n_rag(self):
-        pass
+        """
 
-    def test_generate_long_form_with_context(self):
+        talking_points = self.dr.generate_talking_points(research_report)
+
+        print("talking_points", talking_points)
+
+        self.assertGreater(len(talking_points), 0)
+
+    def test_generate_long_form_with_report_n_talking_points(self):
         # podcastify content generator generate_long_form
-        pass
-
-    def test_2_llms_generate_long_form_w_each_other_with_context_n_talking_points_n_rag(
-        self,
-    ):
-        # give each llm a different voice and a different personality
-        pass
-
-    # --- human audio to response
-    def test_stt(self):
+        # different personality to [MAN] and [WOMAN]
         pass
 
     def test_split_pod_text_to_different_voices(self):
         pass
 
-    def test_generate_text_from_transcript_n_talking_points(self):
+    def test_answer_user_query_n_continue_generate_long_form_using_talking_points(self):
+        pass
+
+    # --- human audio to response
+    def test_stt(self):
         pass
 
 

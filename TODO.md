@@ -1,8 +1,6 @@
 # untitled project: Interruptible Podcast
 
 
-   - https://github.com/langchain-ai/ollama-deep-researcher
-   - https://github.com/zilliztech/deep-searcher
    - https://github.com/souzatharsis/podcastfy
 
 
@@ -11,9 +9,6 @@
 
   - https://github.com/KoljaB/RealtimeTTS
   - https://github.com/remsky/Kokoro-FastAPI
-
-
-
 
 
 ```
