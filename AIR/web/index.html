@@ -5,7 +5,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 		<title>AIR</title>
-		<link rel="icon" type="image/x-icon" href="web/favicon.ico">
+		<link rel="icon" type="image/x-icon" href="web/favicon.ico" />
 		<script src="web/dist/recorder.min.js" type="text/javascript"></script>
 		<style>
 			body {
@@ -20,14 +20,20 @@
 			}
 			.container {
 				background: white;
-				height: 350px;
+				height: window.innerHeight;
 				padding: 20px;
 				border-radius: 12px;
 				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 				text-align: center;
+				display: flex;
+				flex-direction: column;
 			}
 			.row {
-				margin-bottom: 12px;
+				display: flex;
+				flex: 1; /*each row takes equal height */
+				justify-content: center;
+				align-items: center;
+				margin: 10px;
 			}
 			.row2 {
 				height: 150px;
@@ -68,14 +74,18 @@
 			}
 
 			#status {
-				margin-top: 1rem;
+				margin-top: 4rem;
 				font-weight: bold;
+			}
+
+			#info {
+				font-size: 7px;
 			}
 		</style>
 	</head>
 	<body>
 		<div class="container">
-			<div class="row">
+			<div class="row row1">
 				<input
 					type="text"
 					placeholder="What do you wanna talk about?"
@@ -95,16 +105,18 @@
 					<option value="tech&futurism">Tech & Futurism</option>
 				</select>
 			</div>
-			<div class="row">
+			<div class="row row2">
 				<button id="btnSubmit">Submit</button>
 			</div>
-			<div class="row2">
-				<!--        <audio id="audioPlayer" controls></audio>-->
+			<div class="row row3">
+				<canvas id="waveCanvas"></canvas>
 			</div>
-			<div class="row">
+			<div class="row row4">
 				<button id="btnInterrupt">Interrupt</button>
 			</div>
-
+			<div class="row row5">
+				<span id="info">long press to record</span>
+			</div>
 			<p id="status"></p>
 		</div>
 
@@ -117,6 +129,7 @@
 			let isRecording = false;
 
 			// playback
+			let isProcessing = false;
 			let audioQueue = [];
 			let isPlaying = false;
 
@@ -124,6 +137,91 @@
 			const btnSubmit = document.getElementById("btnSubmit");
 			const btnInterrupt = document.getElementById("btnInterrupt");
 
+			// ------------ canvas animation
+			const canvas = document.getElementById("waveCanvas");
+			const ctx = canvas.getContext("2d");
+			canvas.width = 450;
+			canvas.height = 250;
+
+			const centerX = canvas.width / 2;
+			const centerY = canvas.height / 2;
+			const circleRadius = 30;
+			const waveRadius = circleRadius + 10;
+			let angleOffset = 0;
+
+			// Array to store wave objects
+			const waves = [];
+			const maxWaveRadius = 100; // Maximum radius before wave fades out completely
+			const waveSpeed = 1; // Speed of wave expansion
+
+			function createWave() {
+				return {
+					radius: circleRadius, // Start at the edge of the circle
+					opacity: 1, // Start fully opaque
+					angleOffset: Math.random() * 360, // Random starting angle for variety
+				};
+			}
+
+			// Add initial waves (optional)
+			for (let i = 0; i < 3; i++) {
+				waves.push(createWave());
+			}
+
+			function draw() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+				// Draw static white center circle
+				ctx.beginPath();
+				ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
+				ctx.fillStyle = "white";
+				ctx.fill();
+				ctx.closePath();
+
+				if (!isProcessing && isPlaying) {
+					// Add new wave periodically
+					if (Math.random() < 0.1) {
+						// 10% chance each frame
+						waves.push(createWave());
+					}
+
+					// Draw and update waves
+					for (let i = waves.length - 1; i >= 0; i--) {
+						const wave = waves[i];
+						wave.radius += waveSpeed; // Expand wave
+						wave.opacity =
+							1 - (wave.radius - circleRadius) / (maxWaveRadius - circleRadius); // Fade out
+
+						if (wave.opacity <= 0) {
+							waves.splice(i, 1); // Remove faded waves
+							continue;
+						}
+
+						ctx.beginPath();
+						for (let angle = 0; angle <= 360; angle += 5) {
+							let rad = (angle + wave.angleOffset) * (Math.PI / 180);
+							// Simulate audio wave with multiple sine components
+							let waveHeight = (Math.sin(rad * 5) + Math.sin(rad * 3)) * 15;
+							let x = centerX + (wave.radius + waveHeight) * Math.cos(rad);
+							let y = centerY + (wave.radius + waveHeight) * Math.sin(rad);
+							if (angle === 0) {
+								ctx.moveTo(x, y);
+							} else {
+								ctx.lineTo(x, y);
+							}
+						}
+						ctx.closePath();
+						ctx.strokeStyle = `rgba(0, 0, 0, ${wave.opacity})`; // Black with fading opacity
+						ctx.lineWidth = 2;
+						ctx.stroke();
+
+						wave.angleOffset += 2; // Animate the wave pattern
+					}
+				}
+
+				requestAnimationFrame(draw);
+			}
+
+			// -- prompt related
 			async function submitPrompt() {
 				const inputPrompt = document.getElementById("inputPrompt").value;
 				const selectTone = document.getElementById("selectTone").value;
@@ -138,18 +236,21 @@
 						tone: selectTone,
 					});
 
-					if (websocket.readyState === WebSocket.OPEN) {
-						websocket.send(data);
+					if (socket.readyState === WebSocket.OPEN) {
+						socket.send(data);
+						// podcast research and script is being generated. TODO: show spinner
+						isProcessing = true;
 					}
 				} catch (err) {
 					textStatus.textContent =
 						"Could not connect to WebSocket or access mic. Aborted.";
-					console.error(err);
+					console.error("Error submitting prompt", err.message);
 				}
 			}
 
 			btnSubmit.addEventListener("click", submitPrompt);
 
+			// --- playback related
 			function startRecording() {
 				if (!isRecording) {
 					isRecording = true;
@@ -164,6 +265,7 @@
 					try {
 						await recorder.stop();
 
+						// check socket conn and send msg out
 						if (!socket || socket.readyState !== WebSocket.OPEN) {
 							console.log("socket closed. reopening...");
 							try {
@@ -173,7 +275,6 @@
 								return;
 							}
 						}
-
 						const stopMessage = JSON.stringify({
 							action: "stop_recording",
 						});
@@ -252,8 +353,6 @@
 				};
 
 				recorder.onstop = () => {
-					textStatus.textContent = "Processing...";
-
 					// create blob from buffer chunks
 					const blob = new Blob(audioChunks, {
 						type: "audio/ogg; codecs=opus",
@@ -277,6 +376,9 @@
 				if (audioQueue.length === 0 || isPlaying) {
 					return;
 				}
+
+				// if first time podcast generation, set false and disappear spinner
+				if (isProcessing) isProcessing = false;
 
 				isPlaying = true;
 				const currentBlob = audioQueue.shift();
@@ -308,6 +410,7 @@
 				playAudioFromQ();
 			}
 
+			// -- onload init
 			async function initializeWebsocketAsync() {
 				return new Promise((resolve, reject) => {
 					// extract ws from url
@@ -316,7 +419,7 @@
 					let wsURL = `${wsProtocol}//${currentURL.host}/ws`;
 					socket = new WebSocket(wsURL);
 
-				// -----------
+					// -----------
 					socket.onopen = () => {
 						console.log("websocket conected");
 						textStatus.textContent = "Ready";
@@ -351,11 +454,13 @@
 							}
 						}
 					};
-				// -----------
+					// -----------
 				});
 			}
 
 			window.onload = async () => {
+				draw();
+
 				// initialize recorder
 				await initializeRecorder();
 				await recorder.initialize;
