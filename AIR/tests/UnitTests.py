@@ -10,24 +10,6 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.dr = DeepResearcher()
         self.cm = ClientManager()
         self.session_id = self.cm.create_session()
-        self.cm.sessions[self.session_id]["research_topic"] = "quantum computing"
-
-    def test_summarize_sources(self):
-        asyncio.run(self._summarize_sources())
-
-    async def _summarize_sources(self):
-        search_result = await self.dr.web_search_n_scrape(
-            self.cm.sessions[self.session_id]["research_topic"]
-        )
-        self.cm.sessions[self.session_id]["web_search_results"].append(search_result)
-
-        current_summary = self.dr.summarize_sources(self.cm.sessions[self.session_id])
-        self.cm.sessions[self.session_id]["running_summary"] = current_summary
-
-        self.assertGreater(len(current_summary), 0)
-
-    def test_reflect_on_summary(self):
-        pass
 
     def test_finalize_report(self):
         pass
@@ -39,7 +21,9 @@ class AIRTestCasesUnit(unittest.TestCase):
     async def _ds_report(self):
         user_input = "find out about quantum computing"
 
-        research_summary = await self.dr.generate_report(user_input)
+        research_summary = await self.dr.generate_report(
+            user_input, self.cm.sessions[self.session_id]
+        )
 
         print("result", research_summary)
         self.assertGreater(len(research_summary), 0)

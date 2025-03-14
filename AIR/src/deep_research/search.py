@@ -9,31 +9,46 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
 
 from .crawl4ai import embed_url
-from .dr_templates import query_writer_instructions, summarizer_instructions
+from .dr_templates import (
+    query_writer_instructions,
+    summarizer_instructions,
+    reflection_instructions,
+)
 from .util import deduplicate_and_format_sources
 from ..config import Config
+from ..manager import ClientManager
 
 
 class DeepResearcher:
     def __init__(self):
         pass
 
-    async def generate_report(self, user_input: str) -> str | None:
+    async def generate_report(
+        self,
+        user_input: str,
+        session: dict[str, Any],
+    ) -> str | None:
         # generate query
         query = self.generate_query(user_input)
+        session["research_topic"] = query
+        session["follow_up_query"] = query
 
-        # TODO: pull and update from ClientManager class
         count = Config.research_loop_count
+
         while count > 0:
-            # TODO: update state to ClientManager
-            await self.web_search_n_scrape(query)
-            # summarize sources
-            # reflect on summary
+            # concurrent i/o bound task
+            search_result = await self.web_search_n_scrape(session["follow_up_query"])
+            session["web_search_results"].append(search_result)
+
+            current_summary = self.summarize_sources(session)
+            session["running_summary"] = current_summary
+
+            session["follow_up_query"] = self.reflect(session)
 
             count -= 1
-        # finalize summary
 
-        pass
+        print("session_state", session)
+        # finalize summary
 
     @staticmethod
     def generate_query(user_input: str) -> str | None:
@@ -97,7 +112,7 @@ class DeepResearcher:
             logging.error("error in web search", str(e))
 
     @staticmethod
-    def summarize_sources(session):
+    def summarize_sources(session: dict[str, Any]) -> str | None:
         """summarize search results"""
         logging.info("init summarize sources")
         try:
@@ -144,9 +159,36 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in summarize sources", str(e))
 
-    def reflect(self):
+    @staticmethod
+    def reflect(session: dict[str, Any]) -> str | None:
         try:
-            pass
+            llm_json_mode = ChatOllama(
+                base_url=Config.ollama_base_url,
+                model=Config.local_llm,
+                temperature=0.2,
+                format="json",
+            )
+
+            result = llm_json_mode.invoke(
+                [
+                    SystemMessage(
+                        content=reflection_instructions.format(
+                            research_topic=session.get("research_topic")
+                        )
+                    ),
+                    HumanMessage(
+                        content=f"Identify a knowledge gap and generate a follow-up web search query based on our existing knowledge: {session.get('running_summary')}"
+                    ),
+                ]
+            )
+            follow_up_query = json.loads(result.content)
+
+            query = follow_up_query.get("follow_up_query")
+            if not query:
+                return f"Tell me about {session.get('research_topic')}"
+
+            return query
+
         except Exception as e:
             logging.error("error in reflect", str(e))
 

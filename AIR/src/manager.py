@@ -11,8 +11,8 @@ class ClientManager:
         self.sessions[session_id] = {
             "research_topic": "",
             "running_summary": "",
+            "follow_up_query": "",
             "web_search_results": [],
-            "research_loop_count": 0,
             "audio_buffer": b"",
             "conversation": "",
             "llm_output_sentences": deque(),
