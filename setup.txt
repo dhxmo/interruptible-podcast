@@ -20,4 +20,4 @@ curl -fsSL https://ollama.com/install.sh | sh
 ollama run deepseek-r1:8b
 
 for tests: venv
-venv/bin/python -m pytest AIR/tests/UnitTests.py
+venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_web_search_n_scrape

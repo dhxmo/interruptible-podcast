@@ -16,7 +16,7 @@ class Config:
     local_llm = "deepseek-r1:8b"
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
-    search_max_results = 5
+    search_max_results = 3
     fetch_full_page = True
     ollama_base_url = "http://localhost:11434/"
     uuid = id_generator(7)

@@ -338,7 +338,7 @@ class DeepResearcher:
     async def embed_url(self, TARGET_URL: str, session_id: str) -> str:
         try:
             fetched_content = await self.fetch_url_content(TARGET_URL)
-            logging.info("length content", len(fetched_content))
+            logging.info("length content", fetched_content)
 
             if len(fetched_content) > 0:
                 logging.info("not empty content")
