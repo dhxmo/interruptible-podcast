@@ -347,8 +347,6 @@ class DeepResearcher:
             fetched_content = await self.fetch_url_content(
                 client_session=client_session, TARGET_URL=TARGET_URL
             )
-            logging.info("length content", fetched_content)
-
             if len(fetched_content) > 0:
                 logging.info("not empty content")
                 # add to vectorDB for sessionid for later questioning knowledge
