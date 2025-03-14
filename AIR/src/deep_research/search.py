@@ -5,6 +5,7 @@ import re
 from typing import List, Dict, Any, Iterable
 
 import aiohttp
+from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
 from langchain_community.embeddings import HuggingFaceEmbeddings
@@ -99,7 +100,9 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in generate query", str(e))
 
-    async def web_search_n_scrape(self, search_query: str) -> str | None:
+    async def web_search_n_scrape(
+        self, session: dict[str, Any], search_query: str
+    ) -> str | None:
         """gather search results and scrape content for later use"""
         logging.info("init web search")
         try:
@@ -113,7 +116,7 @@ class DeepResearcher:
             # --- scrape and embed content for reuse later for questioning
             # Create a list of coroutines while maintaining index association
             tasks = [
-                self.embed_url(result["url"], session_id=Config.uuid)
+                self.embed_url(session, result["url"], session_id=Config.uuid)
                 for result in search_results
             ]
 
@@ -278,14 +281,16 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in generating talking points", str(e))
 
-    async def fetch_url_content(self, TARGET_URL: str) -> str:
+    async def fetch_url_content(
+        self, client_session: dict[str, Any], TARGET_URL: str
+    ) -> str:
         try:
 
-            async def fetch(session, url):
+            async def fetch(session: ClientSession, url):
                 async with session.get(url) as response:
                     return await response.text()
 
-            def parse(html):
+            def parse(client_session: dict[str, Any], html):
                 soup = BeautifulSoup(html, "html.parser")
                 all_text = soup.get_text(separator=" ", strip=True)
                 cleaned_text = re.sub(r"\s+", " ", all_text)
@@ -293,7 +298,7 @@ class DeepResearcher:
                 logging.info("init content extraction")
                 try:
                     human_msg_content = (
-                        f"<User Input> \n {session.get('research_topic')} \n <User Input>\n\n"
+                        f"<User Input> \n {client_session.get('research_topic')} \n <User Input>\n\n"
                         f"<HTML Page Content> \n {cleaned_text} \n <HTML Page Content>"
                     )
 
@@ -330,14 +335,18 @@ class DeepResearcher:
             # --- fetch url and parse content with llm
             async with aiohttp.ClientSession() as session:
                 html = await fetch(session, TARGET_URL)
-                return parse(html)
+                return parse(client_session, html)
         except Exception as e:
             logging.error(f"Error crawling the web '{TARGET_URL}': {str(e)}")
             return ""
 
-    async def embed_url(self, TARGET_URL: str, session_id: str) -> str:
+    async def embed_url(
+        self, client_session: dict[str, Any], TARGET_URL: str, session_id: str
+    ) -> str:
         try:
-            fetched_content = await self.fetch_url_content(TARGET_URL)
+            fetched_content = await self.fetch_url_content(
+                client_session=client_session, TARGET_URL=TARGET_URL
+            )
             logging.info("length content", fetched_content)
 
             if len(fetched_content) > 0:

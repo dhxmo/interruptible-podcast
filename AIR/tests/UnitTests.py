@@ -16,7 +16,9 @@ class AIRTestCasesUnit(unittest.TestCase):
         return asyncio.run(self._web_search_n_scrape())
 
     async def _web_search_n_scrape(self):
-        search_result = await self.dr.web_search_n_scrape("quantum computing")
+        search_result = await self.dr.web_search_n_scrape(
+            self.cm.sessions[self.session_id], "quantum computing"
+        )
         self.assertGreater(len(search_result), 0)
 
     # --- input prompt to talking points + RAG
