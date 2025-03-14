@@ -11,37 +11,33 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.cm = ClientManager()
         self.session_id = self.cm.create_session()
 
-    def test_finalize_report(self):
-        pass
+    # UNITS for generate report
+    def test_web_search_n_scrape(self):
+        return asyncio.run(self._web_search_n_scrape())
+
+    async def _web_search_n_scrape(self):
+        search_result = await self.dr.web_search_n_scrape("quantum computing")
+        self.assertGreater(len(search_result), 0)
 
     # --- input prompt to talking points + RAG
     def test_deep_research_report(self):
         return asyncio.run(self._ds_report())
 
     async def _ds_report(self):
-        user_input = "find out about quantum computing"
+        user_input = "tell me whats latest in quantum computing"
 
-        research_summary = await self.dr.generate_report(
+        talking_points = await self.dr.generate_report(
             user_input, self.cm.sessions[self.session_id]
         )
 
-        print("result", research_summary)
-        self.assertGreater(len(research_summary), 0)
-
-    def test_podcast_talking_points_output(self):
-        research_report = """
-
-        """
-
-        talking_points = self.dr.generate_talking_points(research_report)
-
-        print("talking_points", talking_points)
-
+        print("result", talking_points)
         self.assertGreater(len(talking_points), 0)
 
     def test_generate_long_form_with_report_n_talking_points(self):
         # podcastify content generator generate_long_form
         # different personality to [MAN] and [WOMAN]
+
+        # use talking points and session running summary to generate podcast content
         pass
 
     def test_split_pod_text_to_different_voices(self):

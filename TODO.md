@@ -31,4 +31,6 @@ Text-generation: Llama 3 8B Instruct (Q4_K_M) or ollama mistral7b, qwen2.5, llam
 TTS: xTTS 
 
 
+on user query in interruption:
+use vectordb generated from search queries to answer
 

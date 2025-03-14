@@ -1,33 +1,57 @@
 import asyncio
 import json
 import logging
-from pprint import pprint
-from typing import List, Dict, Any, Coroutine
+import re
+from typing import List, Dict, Any, Iterable
 
+import aiohttp
+from bs4 import BeautifulSoup
 from duckduckgo_search import DDGS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_core.documents import Document
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from .crawl4ai import embed_url
 from .dr_templates import (
     query_writer_instructions,
     summarizer_instructions,
     reflection_instructions,
+    talking_points_instructions,
+    content_extraction_instructions,
 )
 from .util import deduplicate_and_format_sources
 from ..config import Config
-from ..manager import ClientManager
 
 
 class DeepResearcher:
     def __init__(self):
-        pass
+        self.llm = ChatOllama(
+            base_url=Config.ollama_base_url,
+            model=Config.local_llm,
+            temperature=0.2,
+        )
+
+        self.llm_json_mode = ChatOllama(
+            base_url=Config.ollama_base_url,
+            model=Config.local_llm,
+            temperature=0.2,
+            format="json",
+        )
 
     async def generate_report(
         self,
         user_input: str,
         session: dict[str, Any],
     ) -> str | None:
+        """
+        Entrypoint function to conduct research on topic and generate talking points for conversation
+
+        :param user_input:
+        :param session:
+        :return:
+        """
         # generate query
         query = self.generate_query(user_input)
         session["research_topic"] = query
@@ -38,33 +62,32 @@ class DeepResearcher:
         while count > 0:
             # concurrent i/o bound task
             search_result = await self.web_search_n_scrape(session["follow_up_query"])
+            logging.info("search done", str(search_result))
             session["web_search_results"].append(search_result)
 
             current_summary = self.summarize_sources(session)
+            logging.info("summary generated")
             session["running_summary"] = current_summary
-
-            session["follow_up_query"] = self.reflect(session)
 
             count -= 1
 
-        print("session_state", session)
-        # finalize summary
+            # if not last research loop continue
+            if count == 0:
+                logging.info("last loop, generating talking points")
+                break
 
-    @staticmethod
-    def generate_query(user_input: str) -> str | None:
+            session["follow_up_query"] = self.reflect(session)
+            logging.info("summary reflected")
+
+        return self.generate_talking_points(session)
+
+    def generate_query(self, user_input: str) -> str | None:
         try:
             query_writer_instructions_formatted = query_writer_instructions.format(
                 research_topic=user_input
             )
 
-            llm_json_mode = ChatOllama(
-                base_url=Config.ollama_base_url,
-                model=Config.local_llm,
-                temperature=0.2,
-                format="json",
-            )
-
-            result = llm_json_mode.invoke(
+            result = self.llm_json_mode.invoke(
                 [
                     SystemMessage(content=query_writer_instructions_formatted),
                     HumanMessage(content="Generate a query for web search:"),
@@ -85,11 +108,12 @@ class DeepResearcher:
                 search_query,
                 max_results=Config.search_max_results,
             )
+            logging.info("search_results done")
 
             # --- scrape and embed content for reuse later for questioning
             # Create a list of coroutines while maintaining index association
             tasks = [
-                embed_url(result["url"], topic=search_query, session_id=Config.uuid)
+                self.embed_url(result["url"], session_id=Config.uuid)
                 for result in search_results
             ]
 
@@ -111,8 +135,7 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in web search", str(e))
 
-    @staticmethod
-    def summarize_sources(session: dict[str, Any]) -> str | None:
+    def summarize_sources(self, session: dict[str, Any]) -> str | None:
         """summarize search results"""
         logging.info("init summarize sources")
         try:
@@ -132,13 +155,7 @@ class DeepResearcher:
                     f"<Search Results> \n {most_recent_web_search} \n <New Search Results>"
                 )
 
-            llm = ChatOllama(
-                base_url=Config.ollama_base_url,
-                model=Config.local_llm,
-                temperature=0.2,
-            )
-
-            result = llm.invoke(
+            result = self.llm.invoke(
                 [
                     SystemMessage(content=summarizer_instructions),
                     HumanMessage(content=human_msg_content),
@@ -159,17 +176,9 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in summarize sources", str(e))
 
-    @staticmethod
-    def reflect(session: dict[str, Any]) -> str | None:
+    def reflect(self, session: dict[str, Any]) -> str | None:
         try:
-            llm_json_mode = ChatOllama(
-                base_url=Config.ollama_base_url,
-                model=Config.local_llm,
-                temperature=0.2,
-                format="json",
-            )
-
-            result = llm_json_mode.invoke(
+            result = self.llm_json_mode.invoke(
                 [
                     SystemMessage(
                         content=reflection_instructions.format(
@@ -234,5 +243,133 @@ class DeepResearcher:
             logging.error("full error details", type(e).__name__)
             return []
 
-    def generate_talking_points(self, research_report):
-        pass
+    def generate_talking_points(self, session: dict[str, Any]) -> str | None:
+        logging.info("init generate talking points")
+
+        try:
+
+            human_msg_content = (
+                f"<User Input> \n {session.get('research_topic')} \n <User Input>\n\n"
+                f"<Search Summary> \n {session.get('running_summary')} \n <Search Summary>"
+            )
+
+            result = self.llm.invoke(
+                [
+                    SystemMessage(
+                        content=talking_points_instructions.format(
+                            research_topic=session.get("research_topic")
+                        )
+                    ),
+                    HumanMessage(content=human_msg_content),
+                ]
+            )
+            talking_points = result.content
+
+            # deepseek specific
+            if "deepseek" in Config.local_llm:
+                while "<think>" in talking_points and "</think" in talking_points:
+                    # remove think section from the final output
+                    start = talking_points.find("<think>")
+                    end = talking_points.find("</think>") + len("</think>")
+                    talking_points = talking_points[:start] + talking_points[end:]
+
+            return talking_points
+
+        except Exception as e:
+            logging.error("error in generating talking points", str(e))
+
+    async def fetch_url_content(self, TARGET_URL: str) -> str:
+        try:
+
+            async def fetch(session, url):
+                async with session.get(url) as response:
+                    return await response.text()
+
+            def parse(html):
+                soup = BeautifulSoup(html, "html.parser")
+                all_text = soup.get_text(separator=" ", strip=True)
+                cleaned_text = re.sub(r"\s+", " ", all_text)
+
+                logging.info("init content extraction")
+                try:
+                    human_msg_content = (
+                        f"<User Input> \n {session.get('research_topic')} \n <User Input>\n\n"
+                        f"<HTML Page Content> \n {cleaned_text} \n <HTML Page Content>"
+                    )
+
+                    result = self.llm.invoke(
+                        [
+                            SystemMessage(
+                                content=content_extraction_instructions.format(
+                                    research_topic=session.get("research_topic")
+                                )
+                            ),
+                            HumanMessage(content=human_msg_content),
+                        ]
+                    )
+                    content_extracted = result.content
+
+                    # deepseek specific
+                    if "deepseek" in Config.local_llm:
+                        while (
+                            "<think>" in content_extracted
+                            and "</think" in content_extracted
+                        ):
+                            # remove think section from the final output
+                            start = content_extracted.find("<think>")
+                            end = content_extracted.find("</think>") + len("</think>")
+                            content_extracted = (
+                                content_extracted[:start] + content_extracted[end:]
+                            )
+
+                    return content_extracted
+                except Exception as e:
+                    logging.error(f"Error extracting content '{TARGET_URL}': {str(e)}")
+                    return ""
+
+            # --- fetch url and parse content with llm
+            async with aiohttp.ClientSession() as session:
+                html = await fetch(session, TARGET_URL)
+                return parse(html)
+        except Exception as e:
+            logging.error(f"Error crawling the web '{TARGET_URL}': {str(e)}")
+            return ""
+
+    async def embed_url(self, TARGET_URL: str, session_id: str) -> str:
+        try:
+            fetched_content = await self.fetch_url_content(TARGET_URL)
+
+            # add to vectorDB for sessionid for later questioning knowledge
+            document = Document(
+                page_content=fetched_content, metadata={"source": TARGET_URL}
+            )
+            documents: Iterable[Document] = [document]
+
+            if documents:
+                logging.info("embedding content to vectordb")
+                # split text
+                text_splitter = RecursiveCharacterTextSplitter(
+                    chunk_size=1000, chunk_overlap=200
+                )
+                documents = text_splitter.split_documents(documents)
+
+                # Create embeddings
+                embeddings = HuggingFaceEmbeddings(
+                    model_name=Config.HF_EMBEDDINGS_MODEL_NAME
+                )
+
+                vectordb = Chroma.from_documents(
+                    documents=documents,
+                    embedding=embeddings,
+                    persist_directory=Config.INDEX_PERSIST_DIRECTORY,
+                    collection_name=session_id,
+                )
+                vectordb.persist()
+
+                logging.info("content persisted in vectordb")
+
+                return fetched_content
+            return ""
+        except Exception as e:
+            logging.error("failed fetch_url_content", str(e))
+        return ""

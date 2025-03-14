@@ -11,11 +11,11 @@ def id_generator(length):
 
 @dataclass(kw_only=True)
 class Config:
-    research_loop_count: int = 2
+    research_loop_count: int = 1
     local_llm = "qwen2.5:0.5b"
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
-    search_max_results = 3
+    search_max_results = 1
     fetch_full_page = True
     ollama_base_url = "http://localhost:11434/"
     uuid = id_generator(7)

@@ -1,7 +1,10 @@
 import logging
 import re
+import urllib.request
 from typing import Iterable
 
+import aiohttp
+from bs4 import BeautifulSoup
 from crawl4ai import AsyncWebCrawler, CacheMode, CrawlResult, LXMLWebScrapingStrategy
 from crawl4ai.async_configs import BrowserConfig, CrawlerRunConfig, LLMConfig
 from crawl4ai.extraction_strategy import LLMExtractionStrategy
@@ -51,11 +54,15 @@ class WebCrawler:
             # Content processing
             remove_overlay_elements=True,  # Remove popups/modals
             process_iframes=False,  # Process iframe content
+            # prettiify=True,
+            page_timeout=10000,  # 10 sec
             # Cache control
             cache_mode=CacheMode.ENABLED,  # Use cache if available
             scraping_strategy=LXMLWebScrapingStrategy(),
             exclude_social_media_links=True,
-            page_timeout=5000,
+            # Error handling
+            # simulate_user=True,
+            # magic=True,
         )
 
         if is_local:
@@ -89,8 +96,10 @@ class WebCrawler:
 
 async def fetch_url_content(TARGET_URL: str, topic: str) -> str:
     try:
+        # crawl4ai malfunctions many times
         crawler = WebCrawler()
         crawled_data = await crawler.crawl_web(link=TARGET_URL, topic=topic)
+        logging.info("crawled_data", crawled_data)
 
         if crawled_data:
             md = clean_markdown(crawled_data.markdown)
@@ -100,6 +109,17 @@ async def fetch_url_content(TARGET_URL: str, topic: str) -> str:
                 return md
             return ""
         return ""
+        # async def fetch(session, url):
+        #     async with session.get(url) as response:
+        #         return await response.text()
+        #
+        # async def parse(html):
+        #     soup = BeautifulSoup(html, 'html.parser')
+        #     return soup.get_text()
+        #
+        # async with aiohttp.ClientSession() as session:
+        #     html = await fetch(session, TARGET_URL)
+        #     return await parse(html)
     except Exception as e:
         logging.error(f"Error crawling the web '{TARGET_URL}': {str(e)}")
         return ""
@@ -108,6 +128,7 @@ async def fetch_url_content(TARGET_URL: str, topic: str) -> str:
 async def embed_url(TARGET_URL: str, topic: str, session_id: str) -> str:
     try:
         md = await fetch_url_content(TARGET_URL, topic)
+        print("md", md)
 
         # add to vectorDB for sessionid for later questioning knowledge
         document = Document(page_content=md, metadata={"source": TARGET_URL})
