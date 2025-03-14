@@ -42,6 +42,7 @@ class DeepResearcher:
             top_p=0.95,
             temperature=0.2,
             max_new_tokens=512,
+            dtype='half'
             # vllm_kwargs={"quantization": "awq"},
             # tensor_parallel_size=... # for distributed inference
         )
