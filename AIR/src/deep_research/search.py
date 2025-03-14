@@ -62,7 +62,8 @@ class DeepResearcher:
 
         while count > 0:
             # concurrent i/o bound task
-            search_result = await self.web_search_n_scrape(session["follow_up_query"])
+            search_result = await self.web_search_n_scrape(session,
+                                                           session["follow_up_query"])
             logging.info("search done")
             session["web_search_results"].append(search_result)
 
