@@ -14,6 +14,7 @@ from langchain_core.documents import Document
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.llms import VLLM
 
 from .dr_templates import (
     query_writer_instructions,
@@ -28,10 +29,20 @@ from ..config import Config
 
 class DeepResearcher:
     def __init__(self):
-        self.llm = ChatOllama(
-            base_url=Config.ollama_base_url,
-            model=Config.local_llm,
+        # self.llm = ChatOllama(
+        #     base_url=Config.ollama_base_url,
+        #     model=Config.local_llm,
+        #     temperature=0.2,
+        # )
+        self.llm = VLLM(
+            model="TheBloke/Llama-2-7b-Chat-AWQ",
+            trust_remote_code=True,  # mandatory for hf models
+            top_k=10,
+            top_p=0.95,
             temperature=0.2,
+            max_new_tokens=512,
+            vllm_kwargs={"quantization": "awq"},
+            # tensor_parallel_size=... # for distributed inference
         )
 
         self.llm_json_mode = ChatOllama(

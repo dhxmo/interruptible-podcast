@@ -25,7 +25,7 @@ class AIRTestCasesUnit(unittest.TestCase):
     # --- input prompt to talking points + RAG
     # ollama
     # deepseekr1:8b ---> 16GB P100 GPU -> 439.27s
-    # qwen:8b
+    # qwen:8b ---> 16GB P100 GPU -> 122.54s
     # vLLM
     #
     def test_deep_research_report(self):
