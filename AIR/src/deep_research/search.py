@@ -54,7 +54,7 @@ class DeepResearcher:
         :return:
         """
         # generate query
-        query = self.generate_query(user_input)
+        query = await self.generate_query(user_input)
         session["research_topic"] = query
         session["follow_up_query"] = query
 
@@ -62,12 +62,13 @@ class DeepResearcher:
 
         while count > 0:
             # concurrent i/o bound task
-            search_result = await self.web_search_n_scrape(session,
-                                                           session["follow_up_query"])
+            search_result = await self.web_search_n_scrape(
+                session, session["follow_up_query"]
+            )
             logging.info("search done")
             session["web_search_results"].append(search_result)
 
-            current_summary = self.summarize_sources(session)
+            current_summary = await self.summarize_sources(session)
             logging.info("summary generated")
             session["running_summary"] = current_summary
 
@@ -78,18 +79,21 @@ class DeepResearcher:
                 logging.info("last loop, generating talking points")
                 break
 
-            session["follow_up_query"] = self.reflect(session)
+            session["follow_up_query"] = await self.reflect(session)
             logging.info("summary reflected")
 
-        return self.generate_talking_points(session)
+        talking_points = await self.generate_talking_points(session)
+        logging.info("talking points generated", str(talking_points))
 
-    def generate_query(self, user_input: str) -> str | None:
+        return talking_points
+
+    async def generate_query(self, user_input: str) -> str | None:
         try:
             query_writer_instructions_formatted = query_writer_instructions.format(
                 research_topic=user_input
             )
 
-            result = self.llm_json_mode.invoke(
+            result = await self.llm_json_mode.ainvoke(
                 [
                     SystemMessage(content=query_writer_instructions_formatted),
                     HumanMessage(content="Generate a query for web search:"),
@@ -139,7 +143,7 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in web search", str(e))
 
-    def summarize_sources(self, session: dict[str, Any]) -> str | None:
+    async def summarize_sources(self, session: dict[str, Any]) -> str | None:
         """summarize search results"""
         logging.info("init summarize sources")
         try:
@@ -159,7 +163,7 @@ class DeepResearcher:
                     f"<Search Results> \n {most_recent_web_search} \n <New Search Results>"
                 )
 
-            result = self.llm.invoke(
+            result = await self.llm.ainvoke(
                 [
                     SystemMessage(content=summarizer_instructions),
                     HumanMessage(content=human_msg_content),
@@ -180,9 +184,9 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in summarize sources", str(e))
 
-    def reflect(self, session: dict[str, Any]) -> str | None:
+    async def reflect(self, session: dict[str, Any]) -> str | None:
         try:
-            result = self.llm_json_mode.invoke(
+            result = await self.llm_json_mode.ainvoke(
                 [
                     SystemMessage(
                         content=reflection_instructions.format(
@@ -247,7 +251,7 @@ class DeepResearcher:
             logging.error("full error details", type(e).__name__)
             return []
 
-    def generate_talking_points(self, session: dict[str, Any]) -> str | None:
+    async def generate_talking_points(self, session: dict[str, Any]) -> str | None:
         logging.info("init generate talking points")
 
         try:
@@ -257,7 +261,7 @@ class DeepResearcher:
                 f"<Search Summary> \n {session.get('running_summary')} \n <Search Summary>"
             )
 
-            result = self.llm.invoke(
+            result = await self.llm.ainvoke(
                 [
                     SystemMessage(
                         content=talking_points_instructions.format(
@@ -291,7 +295,7 @@ class DeepResearcher:
                 async with session.get(url) as response:
                     return await response.text()
 
-            def parse(client_session: dict[str, Any], html):
+            async def parse(client_session: dict[str, Any], html):
                 soup = BeautifulSoup(html, "html.parser")
                 all_text = soup.get_text(separator=" ", strip=True)
                 cleaned_text = re.sub(r"\s+", " ", all_text)
@@ -303,7 +307,7 @@ class DeepResearcher:
                         f"<HTML Page Content> \n {cleaned_text} \n <HTML Page Content>"
                     )
 
-                    result = self.llm.invoke(
+                    result = await self.llm.ainvoke(
                         [
                             SystemMessage(
                                 content=content_extraction_instructions.format(
@@ -336,7 +340,7 @@ class DeepResearcher:
             # --- fetch url and parse content with llm
             async with aiohttp.ClientSession() as session:
                 html = await fetch(session, TARGET_URL)
-                return parse(client_session, html)
+                return await parse(client_session, html)
         except Exception as e:
             logging.error(f"Error crawling the web '{TARGET_URL}': {str(e)}")
             return ""

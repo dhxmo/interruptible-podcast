@@ -33,7 +33,6 @@ class AIRTestCasesUnit(unittest.TestCase):
             user_input, self.cm.sessions[self.session_id]
         )
 
-        print("result", talking_points)
         self.assertGreater(len(talking_points), 0)
 
     def test_generate_long_form_with_report_n_talking_points(self):
