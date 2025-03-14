@@ -27,7 +27,7 @@ class AIRTestCasesUnit(unittest.TestCase):
     # deepseekr1:8b ---> 16GB P100 GPU -> 439.27s
     # qwen:8b ---> 16GB P100 GPU -> 122.54s
     # vLLM
-    #
+    # mosaicml/mpt-7b ---> 16GB P100 GPU dtype=half ->
     def test_deep_research_report(self):
         return asyncio.run(self._ds_report())
 

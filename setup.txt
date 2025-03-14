@@ -16,8 +16,15 @@ cd interruptible-podcast/
 conda create -n core python=3.10 && conda activate core
 pip install -r requirements.txt
 
+// ---- ollama
 curl -fsSL https://ollama.com/install.sh | sh
 ollama run deepseek-r1:8b
 
+// vLLM
+# for P100 tesla
+vllm serve mosaicml/mpt-7b --dtype=half --enforce-eager
+
+
 for tests: venv
 venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_web_search_n_scrape
+venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_deep_research_report

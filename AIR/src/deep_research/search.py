@@ -34,6 +34,7 @@ class DeepResearcher:
         #     model=Config.local_llm,
         #     temperature=0.2,
         # )
+        # vllm serve mosaicml/mpt-7b --dtype=half
         self.llm = VLLM(
             model="mosaicml/mpt-7b",
             trust_remote_code=True,  # mandatory for hf models
