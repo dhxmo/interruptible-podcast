@@ -12,6 +12,7 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.session_id = self.cm.create_session()
 
     # UNITS for generate report
+    # 3 search queries : 172.12s on GPU
     def test_web_search_n_scrape(self):
         return asyncio.run(self._web_search_n_scrape())
 
