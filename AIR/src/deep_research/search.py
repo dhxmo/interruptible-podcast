@@ -9,7 +9,7 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
 
 from .crawl4ai import embed_url
-from .dr_templates import query_writer_instructions
+from .dr_templates import query_writer_instructions, summarizer_instructions
 from .util import deduplicate_and_format_sources
 from ..config import Config
 
@@ -35,9 +35,6 @@ class DeepResearcher:
 
         pass
 
-    def generate_talking_points(self, research_report):
-        pass
-
     @staticmethod
     def generate_query(user_input: str) -> str | None:
         try:
@@ -48,7 +45,7 @@ class DeepResearcher:
             llm_json_mode = ChatOllama(
                 base_url=Config.ollama_base_url,
                 model=Config.local_llm,
-                temperature=0,
+                temperature=0.2,
                 format="json",
             )
 
@@ -65,6 +62,7 @@ class DeepResearcher:
             logging.error("error in generate query", str(e))
 
     async def web_search_n_scrape(self, search_query: str) -> str | None:
+        """gather search results and scrape content for later use"""
         logging.info("init web search")
         try:
             # --- get search results
@@ -98,9 +96,51 @@ class DeepResearcher:
         except Exception as e:
             logging.error("error in web search", str(e))
 
-    def summarize_sources(self):
+    @staticmethod
+    def summarize_sources(session):
+        """summarize search results"""
+        logging.info("init summarize sources")
         try:
-            pass
+            existing_summary = session.get("running_summary")
+            most_recent_web_search = session.get("web_search_results")[-1]
+
+            # build human msg
+            if existing_summary:
+                human_msg_content = (
+                    f"<User Input> \n {session.get('research_topic')} \n <User Input>\n\n"
+                    f"<Existing Summary> \n {existing_summary} \n <Existing Summary>\n\n"
+                    f"<New Search Results> \n {most_recent_web_search} \n <New Search Results>"
+                )
+            else:
+                human_msg_content = (
+                    f"<User Input> \n {session.get('research_topic')} \n <User Input>\n\n"
+                    f"<Search Results> \n {most_recent_web_search} \n <New Search Results>"
+                )
+
+            llm = ChatOllama(
+                base_url=Config.ollama_base_url,
+                model=Config.local_llm,
+                temperature=0.2,
+            )
+
+            result = llm.invoke(
+                [
+                    SystemMessage(content=summarizer_instructions),
+                    HumanMessage(content=human_msg_content),
+                ]
+            )
+            running_summary = result.content
+
+            # deepseek specific
+            if "deepseek" in Config.local_llm:
+                while "<think>" in running_summary and "</think" in running_summary:
+                    # remove think section from the final output
+                    start = running_summary.find("<think>")
+                    end = running_summary.find("</think>") + len("</think>")
+                    running_summary = running_summary[:start] + running_summary[end:]
+
+            return running_summary
+
         except Exception as e:
             logging.error("error in summarize sources", str(e))
 
@@ -151,3 +191,6 @@ class DeepResearcher:
             logging.error("error in duckduckgo search", str(e))
             logging.error("full error details", type(e).__name__)
             return []
+
+    def generate_talking_points(self, research_report):
+        pass

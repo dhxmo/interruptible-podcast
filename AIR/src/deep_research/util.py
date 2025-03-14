@@ -27,7 +27,7 @@ def deduplicate_and_format_sources(
 
     for i, source in enumerate(unique_sources.values(), 1):
         formatted_text += f"Source {source['title']}: \n======\n"
-        formatted_text += f"Most relevant content form source: {source['content']} \n\n"
+        formatted_text += f"Most relevant content from source: {source['content']} \n\n"
 
         if include_raw_content:
             char_limit = max_tokens_per_response * 4  # estimated 4 chars per token
@@ -43,7 +43,7 @@ def deduplicate_and_format_sources(
     return formatted_text.strip()
 
 
-def clean_markdown(md_text):
+def clean_markdown(md_text: str) -> str:
     # Remove YAML front matter (--- at the start and end)
     md_text = re.sub(r"^---\n.*?\n---\n", "", md_text, flags=re.DOTALL)
 

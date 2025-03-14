@@ -1,11 +1,8 @@
 .idea/
 __pycache__/
 .env
-media/
-hls_media/
-whisper_streaming_web/
 server/
-data/*
+AIR/tests/data/*
 
 # vim swap files
 *.swp

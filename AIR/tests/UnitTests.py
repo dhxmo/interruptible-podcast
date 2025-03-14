@@ -2,19 +2,34 @@ import unittest
 import asyncio
 
 from AIR.src.deep_research.search import DeepResearcher
+from AIR.src.manager import ClientManager
 
 
 class AIRTestCasesUnit(unittest.TestCase):
     def setUp(self):
         self.dr = DeepResearcher()
-
-    def test_web_search(self):
-        asyncio.run(self._web_search())
-
-    async def _web_search(self):
-        await self.dr.web_search_n_scrape("quantum computing")
+        self.cm = ClientManager()
+        self.session_id = self.cm.create_session()
+        self.cm.sessions[self.session_id]["research_topic"] = "quantum computing"
 
     def test_summarize_sources(self):
+        asyncio.run(self._summarize_sources())
+
+    async def _summarize_sources(self):
+        search_result = await self.dr.web_search_n_scrape(
+            self.cm.sessions[self.session_id]["research_topic"]
+        )
+        self.cm.sessions[self.session_id]["web_search_results"].append(search_result)
+
+        current_summary = self.dr.summarize_sources(self.cm.sessions[self.session_id])
+        self.cm.sessions[self.session_id]["running_summary"] = current_summary
+
+        self.assertGreater(len(current_summary), 0)
+
+    def test_reflect_on_summary(self):
+        pass
+
+    def test_finalize_report(self):
         pass
 
     # --- input prompt to talking points + RAG
