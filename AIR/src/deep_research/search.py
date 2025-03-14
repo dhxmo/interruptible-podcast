@@ -35,7 +35,7 @@ class DeepResearcher:
         #     temperature=0.2,
         # )
         self.llm = VLLM(
-            model="TheBloke/Llama-2-7b-Chat-AWQ",
+            model="mosaicml/mpt-7b",
             trust_remote_code=True,  # mandatory for hf models
             top_k=10,
             top_p=0.95,
