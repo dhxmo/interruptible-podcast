@@ -83,7 +83,7 @@ class DeepResearcher:
             logging.info("summary reflected")
 
         talking_points = await self.generate_talking_points(session)
-        logging.info("talking points generated", str(talking_points))
+        logging.info(f"talking points generated::: {talking_points}")
 
         return talking_points
 
