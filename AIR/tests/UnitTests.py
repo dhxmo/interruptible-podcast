@@ -23,6 +23,11 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.assertGreater(len(search_result), 0)
 
     # --- input prompt to talking points + RAG
+    # ollama
+    # deepseekr1:8b ---> 16GB P100 GPU -> 439.27s
+    # qwen:8b
+    # vLLM
+    #
     def test_deep_research_report(self):
         return asyncio.run(self._ds_report())
 
@@ -39,7 +44,7 @@ class AIRTestCasesUnit(unittest.TestCase):
         # podcastify content generator generate_long_form
         # different personality to [MAN] and [WOMAN]
 
-        # use talking points and session running summary to generate podcast content
+        # use talking points+session running summary + vectordb to generate podcast content
         pass
 
     def test_split_pod_text_to_different_voices(self):

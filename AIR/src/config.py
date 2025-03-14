@@ -12,8 +12,8 @@ def id_generator(length):
 @dataclass(kw_only=True)
 class Config:
     research_loop_count: int = 3
-    # local_llm = "qwen2.5:0.5b"
-    local_llm = "deepseek-r1:8b"
+    local_llm = "qwen2.5:latest"
+    # local_llm = "deepseek-r1:8b"
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
     search_max_results = 1
