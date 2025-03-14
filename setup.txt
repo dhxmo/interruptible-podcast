@@ -19,4 +19,5 @@ pip install -r requirements.txt
 curl -fsSL https://ollama.com/install.sh | sh
 ollama run deepseek-r1:8b
 
-pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_web_search_n_scrape
+for tests: venv
+venv/bin/python -m pytest AIR/tests/UnitTests.py

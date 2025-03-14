@@ -338,39 +338,40 @@ class DeepResearcher:
     async def embed_url(self, TARGET_URL: str, session_id: str) -> str:
         try:
             fetched_content = await self.fetch_url_content(TARGET_URL)
+            logging.info("length content", len(fetched_content))
 
-            # add to vectorDB for sessionid for later questioning knowledge
-            document = Document(
-                page_content=fetched_content, metadata={"source": TARGET_URL}
-            )
-            documents: Iterable[Document] = [document]
-
-            if documents:
-                logging.info("embedding content to vectordb")
-                # split text
-                text_splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=1000, chunk_overlap=200
+            if len(fetched_content) > 0:
+                logging.info("not empty content")
+                # add to vectorDB for sessionid for later questioning knowledge
+                document = Document(
+                    page_content=fetched_content, metadata={"source": TARGET_URL}
                 )
-                documents = text_splitter.split_documents(documents)
+                documents: Iterable[Document] = [document]
 
-                # Create embeddings
-                embeddings = HuggingFaceEmbeddings(
-                    model_name=Config.HF_EMBEDDINGS_MODEL_NAME
-                )
+                if documents:
+                    logging.info("embedding content to vectordb")
+                    # split text
+                    text_splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=1000, chunk_overlap=200
+                    )
+                    documents = text_splitter.split_documents(documents)
 
-                vectordb = Chroma.from_documents(
-                    documents=documents,
-                    embedding=embeddings,
-                    persist_directory=Config.INDEX_PERSIST_DIRECTORY,
-                    collection_name=session_id,
-                )
-                vectordb.persist()
+                    # Create embeddings
+                    embeddings = HuggingFaceEmbeddings(
+                        model_name=Config.HF_EMBEDDINGS_MODEL_NAME
+                    )
 
-                logging.info("content persisted in vectordb")
+                    vectordb = Chroma.from_documents(
+                        documents=documents,
+                        embedding=embeddings,
+                        persist_directory=Config.INDEX_PERSIST_DIRECTORY,
+                        collection_name=session_id,
+                    )
+                    vectordb.persist()
 
-                return fetched_content
-            return ""
+                    logging.info("content persisted in vectordb")
+
+            return fetched_content
         except Exception as e:
             logging.error("failed fetch_url_content", str(e))
         return ""
-
