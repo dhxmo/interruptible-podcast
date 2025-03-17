@@ -49,9 +49,13 @@ class PodGenStandard:
         )
 
         pod_script = result.content
-        logging.info(f"=====clean script:: \n\n {pod_script}")
+        logging.info(f"=====pod script:: \n\n {pod_script}")
+        # Remove everything inside <think>...</think> including the tags
+        clean_script = re.sub(
+            r"<think>.*?</think>\n?", "", pod_script, flags=re.DOTALL
+        ).strip()
 
-        clean_script = self._clean_tss_markup(pod_script)
+        # clean_script = self._clean_tss_markup(pod_script)
         logging.info(f"=====clean script:: \n\n {clean_script}")
 
         session["podscript_script"] = pod_script
