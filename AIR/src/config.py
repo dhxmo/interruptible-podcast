@@ -15,8 +15,10 @@ class Config:
 
     # only for testing on local CPU
     # local_llm = "qwen2.5:0.5b"
-    # local_llm_reasoning = "llama3.2:latest"
-    # local_llm_podcast_gen = "llama3.2:latest"
+    # local_llm_reasoning = "qwen2.5:0.5b"
+    # local_llm_podcast_gen = (
+    #     "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q4_K_M"
+    # )
 
     # for testing on remote
     local_llm = "qwen2.5:latest"

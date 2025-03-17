@@ -117,11 +117,11 @@ class ContentGenerator:
                     try:
                         parsed_objects.append(ast.literal_eval(match))
                     except (ValueError, SyntaxError):
-                        logger.warning(f"Skipping invalid JSON fragment: {match}")
+                        logging.warning(f"Skipping invalid JSON fragment: {match}")
 
             if parsed_objects:
                 return parsed_objects[0] if len(parsed_objects) == 1 else parsed_objects
 
         # 🔹 If no structured data was found, return the raw text instead of erroring out
-        logger.info("No JSON/List detected; returning raw text")
+        logging.info("No JSON/List detected; returning raw text")
         return response_content

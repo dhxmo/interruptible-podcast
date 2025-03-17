@@ -15,6 +15,7 @@ class ClientManager:
             "web_search_results": [],
             "input_audio_buffer": b"",
             "conversation": "",
+            "podscript_script": "",
             "podscript_sentences": Queue(maxsize=-1),
             "is_processing": False,
             "output_buffer_queue": Queue(maxsize=-1),

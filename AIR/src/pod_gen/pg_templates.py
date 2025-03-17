@@ -19,6 +19,11 @@ Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respon
 between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only. Do NOT end the conversation with 
 look forward to the next one or any mention of the next time. You're generating a small segment of very very long podcast,
 so just output the script about the conversation between the Host1 and Host2
+
+ Generate a 1500 word podcast script using the given talking points following the standard: Introduction, 
+ Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
+ talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
+ 
  --------------------
  
 OUTPUT FORMAT:
@@ -33,7 +38,7 @@ Host2: ... (speech content)
 
  --------------------
 
-INSTRUCTION: {instruction}
+INSTRUCTION: 
   
 Podcast conversation so far is given in CONTEXT.
 Continue the natural flow of conversation. Follow-up on the very previous point/question without repeating topics 
@@ -53,38 +58,13 @@ anything. There name is Host1 and Host2. they dont introduce themselves. The out
 of their conversation. The conversation is being constructed in small [arts that flow into each other. Given in the 
 CONTEXT is what we have so far. continue the conversation fluidly without mention of parts or chunks etc.
  
- ----------------------
- 
-TALKING POINTS: {talking_points}
 
- ----------------------
 
-CONVERSATION UNTIL NOW: {chat_context}
- 
-"""
+ ----------------------------
 
-internal = """
-
-# REQUIREMENTS
-- Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
-- Introduce disfluencies to make it sound like a real conversation. 
-- VERY VERY IMPORTANT ---> Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
-- Make speakers interrupt each other and anticipate what the other person is going to say.
-- Make speakers react to what the other person is saying using phrases like, "Oh?" and "yeah?" 
-- Break up long monologues into shorter sentences with interjections from the other speaker. 
-- Avoid introductions or meta-commentary about summarizing content
-- AVOID REPETITIONS: For instance, do not say "absolutely" and "exactly" or "definitely" too much. Use them sparingly. 
-- Make speakers sometimes complete each other's sentences.
-- Use TTS-friendly elements and appropriate markup (except Amazon/Alexa specific tags)
-- Each speaker turn should be concise for natural conversation flow
-- Output in {output_language}
-- Include natural speech elements (filler words, feedback responses)
-- Start with <Host1> and end with <Host2>
-- Provide extensive examples and real-world applications                                                       
-- Include detailed analysis and multiple perspectives                                                          
-- Use the "yes, and" technique to build upon points                                                            
-- Balance detailed explanations with engaging dialogue                                                         
-- Maintain consistent voice throughout the extended discussion between generation from the followed up CONTEXT
+ Generate a 1500 word podcast script using the given talking points following the standard: Introduction, 
+ Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
+ talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
 
 [INTERNAL USE ONLY - Do not include in output]
 ```scratchpad
@@ -131,5 +111,43 @@ closed, for instance <emphasis> should be closed with </emphasis>.]
 [FORMAT: Output format should contain only <Host1> and <Host2> tags. All open tags should be closed by a corresponding 
 tag of the same type. Make sure Host1's text and its TSS-specific tags are inside the tag <Host1> and do the same 
 with Host2. Scratchpad should not belong in the output response. The conversation must start with <Host1> and end with <Host2>.]
+
+"""
+
+
+user_instruction = """
+TALKING POINTS: {talking_points}
+
+ ----------------------
+
+- Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
+- Introduce disfluencies to make it sound like a real conversation. 
+- VERY VERY IMPORTANT ---> Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
+- Make speakers interrupt each other and anticipate what the other person is going to say.
+- Make speakers react to what the other person is saying using phrases like, "Oh?" and "yeah?" 
+- Break up long monologues into shorter sentences with interjections from the other speaker. 
+- Avoid introductions or meta-commentary about summarizing content
+- AVOID REPETITIONS: For instance, do not say "absolutely" and "exactly" or "definitely" too much. Use them sparingly. 
+- Make speakers sometimes complete each other's sentences.
+- Use TTS-friendly elements and appropriate markup (except Amazon/Alexa specific tags)
+- Each speaker turn should be concise for natural conversation flow
+- Output in {output_language}
+- Include natural speech elements (filler words, feedback responses)
+- Start with <Host1> and end with <Host2>
+- Provide extensive examples and real-world applications                                                       
+- Include detailed analysis and multiple perspectives                                                          
+- Use the "yes, and" technique to build upon points                                                            
+- Balance detailed explanations with engaging dialogue                                                         
+- Maintain consistent voice throughout the extended discussion between generation from the followed up CONTEXT
+
+-----------------
+KNOWLEDGE:
+The knowledge to consider to generate this script is : {running_summary}
+
+-----------
+
+Generate a 1500 word podcast script using the given talking points following the standard: Introduction, 
+Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
+talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
 
 """

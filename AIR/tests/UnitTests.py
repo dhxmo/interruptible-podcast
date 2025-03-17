@@ -1,10 +1,9 @@
-import unittest
 import asyncio
+import unittest
 
-from AIR.src.deep_research.dr_templates import talking_points_instructions
 from AIR.src.deep_research.search import DeepResearcher
 from AIR.src.manager import ClientManager
-from AIR.src.pod_gen.generate import PodGen
+from AIR.src.pod_gen.generate import PodGenStandard
 
 
 class AIRTestCasesUnit(unittest.TestCase):
@@ -12,7 +11,7 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.dr = DeepResearcher()
         self.cm = ClientManager()
         self.session_id = self.cm.create_session()
-        self.pg = PodGen()
+        self.pg = PodGenStandard()
 
     # TODO: --- human audio transcribe
     def test_stt(self):
@@ -43,8 +42,8 @@ class AIRTestCasesUnit(unittest.TestCase):
 
         self.assertGreater(len(talking_points), 0)
 
-    # --- generate podcast script based on talking points
-    def test_generate_long_form_with_summary_talking_points(self):
+    # --- generate podcast script based on talking points - single. non-chunked
+    def test_generate_with_summary_talking_points(self):
         asyncio.run(self._podgen())
 
     async def _podgen(self):
@@ -184,7 +183,9 @@ The field of quantum computing is rapidly evolving with significant breakthrough
 If you need more detailed information or specific references, feel free to ask!
         """
 
-        conversational_tone = "Explainer – Simplified breakdowns of complex topics."
+        conversational_tone = (
+            "Personal / Memoir – First-person storytelling, diary-style"
+        )
 
         await self.pg.podgen(
             self.cm.sessions[self.session_id],
@@ -194,20 +195,20 @@ If you need more detailed information or specific references, feel free to ask!
         )
 
         self.assertGreater(
-            self.cm.sessions[self.session_id]["podscript_sentences"].qsize(), 0
+            len(self.cm.sessions[self.session_id]["podscript_script"]), 0
         )
 
-    # TODO: --- human interrupt
+    # TODO: --- split on sentences and implement human interrupt
     def test_queue_fetch_interrupt_contextual_update_in_queue(self):
         pass
 
     # TODO: --- tts
     def test_tts(self):
-        # use kokoro-tts with onnx
+        # use kokoro-tts or xtts
         pass
 
     def test_different_voices_for_different_personality(self):
-        # parse text based on [MAN] or [WOMAN]
+        # parse text based on Host1 or Host2
         # set global in manager and k:v based on that
         pass
 

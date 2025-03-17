@@ -2,10 +2,6 @@ sudo apt update -y && sudo apt upgrade -y
 sudo apt-get install nano unzip lsof ffmpeg build-essential -y
 sudo apt-get update -y
 
-wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-bash Miniconda3-latest-Linux-x86_64.sh
-rm Miniconda3-latest-Linux-x86_64.sh
-
 ssh-keygen -t ed25519 -C "dhrvmohapatra@gmail.com"
 eval "$(ssh-agent -s)"
 ssh-add ~/.ssh/id_ed25519
@@ -20,6 +16,7 @@ pip install -r requirements.txt
 curl -fsSL https://ollama.com/install.sh | sh
 ollama run qwen2.5
 ollama run deepseek-r1
+ollama run hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0
 
 for tests: venv
 venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_deep_research_report
