@@ -22,7 +22,21 @@ class PodGen:
         self.min_chunk_size = Config.min_chunk_size
 
     def calculate_chunk_size(self, input_content: str) -> int:
-        """calculate chunk size based on input content"""
+        """calculate chunk size based on input content
+
+        input_len // self.min_chunk_size: This calculates how many minimum-sized chunks can fit into input_len
+        input_len // (...): divide the total length by this value, effectively distributing the input length
+        evenly among these chunks
+        It maintains a chunk size close to self.min_chunk_size while ensuring that the total input is divided evenly
+
+        ex:
+        input_len = 100, self.min_chunk_size = 20
+        Step 1: Compute the number of chunks possible --> 100/20=5
+            So, input_len // self.min_chunk_size = 5.
+        Step 2: Compute final chunk size --> 100/5=20
+            The chunk size remains 20, ensuring that we create 5 equal chunks.
+
+        """
 
         input_len = len(input_content)
 
@@ -33,10 +47,6 @@ class PodGen:
         if max_chunk_size >= self.min_chunk_size:
             return max_chunk_size
 
-        # Calculate chunk size that maximizes size while maintaining minimum chunks
-        # If maximum_chunk_size is too small, we need to adjust the chunking strategy.
-        # (input_length // self.min_chunk_size) calculates the maximum number of chunks we can create while keeping each chunk at least min_chunk_size.
-        # Then, input_length // (...) calculates the actual chunk size by redistributing the content over that many chunks.
         return input_len // (input_len // self.min_chunk_size)
 
     @staticmethod
@@ -86,8 +96,7 @@ class PodGen:
         if index == 0:
             intro = f"""ALWAYS START THE CONVERSATION GREETING THE AUDIENCE: Welcome to {Config.podcast_name}. Where we talk about what matters to you.                                     
 You are generating the Introduction part of a long podcast conversation.
- Don't cover any topics yet, just introduce yourself and the topic. Leave the rest for later parts, 
- following these guidelines:"""
+ Don't cover any topics yet, just introduce yourself and the topic. Leave the rest for later parts"""
             system_msg.format(instruction=intro)
         elif index == total_parts - 1:
             outro = """You are generating the last part of a long podcast conversation. 
@@ -138,17 +147,14 @@ Generate content based on the provided input and context. Generate such that the
 
             if i == 0:
                 chat_context += (
-                    "Generated podcast script starts here::: ============================== \n\n"
+                    "GENERATED PODCAST STARTS HERE::: ============================== \n\n"
                     + pod_script
                 )
             else:
                 chat_context += pod_script
 
-            logging.info(f"\n\nchat context ========: {chat_context}")
-
             # clean up
             clean_script = self._clean_tss_markup(pod_script)
-            logging.info(f"\n\npodscript post tss cleanup ========: {clean_script}")
 
             if (
                 "deepseek" in Config.local_llm_podcast_gen

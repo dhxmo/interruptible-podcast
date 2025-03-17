@@ -1,9 +1,11 @@
 podgen_instruction = """
-<IDENTITY>:
-You are an international Oscar winning screenwriter.
-You have been working with multiple award winning Podcasters.
-</IDENTITY>
-     
+<TASK>
+Generate a script for a podcast in a {conversation_style} tone, TTS-optimized podcast-style conversation that 
+DISCUSSES THE PROVIDED INPUT CONTENT. Do not generate content on a random topic. The points to be considered for the 
+conversation are given in TALKING POINTS. Stay focused on discussing the given input. 
+[All output must be formatted as a conversation between Person1 and Person2. Include TTS-specific markup as needed.]
+</TASK>
+
 <CONTEXT>: {context} </CONTEXT>
 
 <INSTRUCTION>: 
@@ -20,7 +22,7 @@ Additionally:
      
 Podcast conversation so far is given in CONTEXT.
 Continue the natural flow of conversation. Follow-up on the very previous point/question without repeating topics 
-or points already discussed!
+or points already discussed.
  Hence, the transition should be smooth and natural. Avoid abrupt transitions.
  Make sure the first to speak is different from the previous speaker. Look at the last tag in CONTEXT to 
  determine the previous speaker. 
@@ -41,23 +43,16 @@ or points already discussed!
 {talking_points}
 </TALKING POINTS>
 
-[START] trigger - Generate a script in a {conversation_style} tone, TTS-optimized podcast-style conversation that 
-DISCUSSES THE PROVIDED INPUT CONTENT. Do not generate content on a random topic. Stay focused on discussing the given input.
-[All output must be formatted as a conversation between Person1 and Person2. Include TTS-specific markup as needed.]
-
-# Output Format Example:
-<Person1>"We're discussing [topic from input text]."</Person1>
-<Person2>"That's right! Let's explore the key points."</Person2>
 
 <REQUIREMENTS>
 - Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
-- Person1 and Person2 should act as unnamed experts, avoid using statements such as "I\'m [Person1\'s Name]".
-- Avoid introductions or meta-commentary about summarizing content
-- AVOID REPETITIONS: For instance, do not say "absolutely" and "exactly" or "definitely" too much. Use them sparingly. 
 - Introduce disfluencies to make it sound like a real conversation. 
+- Person1 and Person2 should act as UNNAMED experts, avoid using statements such as "I\'m [Person1\'s Name]".
 - Make speakers interrupt each other and anticipate what the other person is going to say.
 - Make speakers react to what the other person is saying using phrases like, "Oh?" and "yeah?" 
 - Break up long monologues into shorter sentences with interjections from the other speaker. 
+- Avoid introductions or meta-commentary about summarizing content
+- AVOID REPETITIONS: For instance, do not say "absolutely" and "exactly" or "definitely" too much. Use them sparingly. 
 - Make speakers sometimes complete each other's sentences.
 - Use TTS-friendly elements and appropriate markup (except Amazon/Alexa specific tags)
 - Each speaker turn should be concise for natural conversation flow
@@ -66,6 +61,23 @@ DISCUSSES THE PROVIDED INPUT CONTENT. Do not generate content on a random topic.
 - Include natural speech elements (filler words, feedback responses)
 - Start with <Person1> and end with <Person2>
 </REQUIREMENTS>
+
+output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
+only the hosts talking. a back and forth conversation between Person1 and Person2 is to be the only output. Don't name the hosts
+anything. There name is Person1 and Person2. they dont introduce themselves. The output from here is just the raw transcript 
+of their conversation in the below format:
+
+<OUTPUT FORMAT>
+<Person1>"We're discussing [topic from input text]."</Person1>
+<Person2>"That's right! Let's explore the key points."</Person2>
+<Person1> : ... (speech content) </Person1>
+<Person2> : ... (speech content) </Person2>
+<Person1> : ... (speech content) </Person1>
+<Person2> : ... (speech content) </Person2>
+<Person1> : ... (speech content) </Person1>
+<Person2> : ... (speech content) </Person2>
+</OUTPUT FORMAT>
+
 
 [INTERNAL USE ONLY - Do not include in output]
 ```scratchpad
@@ -77,7 +89,7 @@ DO NOT INCLUDE scratchpad block IN OUTPUT.  Hide this section in your output.]
 [ConversationSetup: Define roles (Person1 as {roles_person1}, Person2 as {roles_person2}), focusing on the input 
 content's topic. Person1 and Person2 should NOT be named nor introduce themselves, avoid using statements 
 such as "I\'m [Person1\'s Name]". Person1 and Person2 should not say they are summarizing content. Instead, 
-they should act as unamed experts in the input content. Avoid using statements such as "Today, we're summarizing a 
+they should act as unnamed experts in the input content. Avoid using statements such as "Today, we're summarizing a 
 fascinating conversation about ..." . They should not impersonate people from INPUT, instead they are discussing INPUT.]
 [TopicExploration: Outline main points from the input content to cover in the conversation, ensuring comprehensive coverage]
 [Tone: {conversation_style}. Surpass human-level reasoning where possible]
@@ -112,20 +124,4 @@ closed, for instance <emphasis> should be closed with </emphasis>.]
 [FORMAT: Output format should contain only <Person1> and <Person2> tags. All open tags should be closed by a corresponding 
 tag of the same type. Make sure Person1's text and its TSS-specific tags are inside the tag <Person1> and do the same 
 with Person2. Scratchpad should not belong in the output response. The conversation must start with <Person1> and end with <Person2>.]
-
-output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
-only the hosts talking. a back and forth conversation between Person1 and Person2 is to be the only output. Don't name the hosts
-anything. There name is Person1 and Person2. they dont introduce themselves. The output from here is just the raw transcript 
-of their conversation in the below format:
-<OUTPUT FORMAT>
-
-[Person1] : ... (speech content)
-[Person2] : ... (speech content)
-[Person1] : ... (speech content)
-[Person2] : ... (speech content)
-[Person1] : ... (speech content)
-[Person2] : ... (speech content)
-
-</OUTPUT FORMAT>
-
 """
