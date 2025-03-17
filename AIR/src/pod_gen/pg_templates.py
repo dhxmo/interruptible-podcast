@@ -78,6 +78,13 @@ of their conversation in the below format:
 <Person2> : ... (speech content) </Person2>
 </OUTPUT FORMAT>
 
+THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
+Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
+between Person1 or Person2
+"""
+
+
+additional_internal_use = """
 
 [INTERNAL USE ONLY - Do not include in output]
 ```scratchpad

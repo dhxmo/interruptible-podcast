@@ -160,11 +160,13 @@ Generate content based on the provided input and context. Generate such that the
                 "deepseek" in Config.local_llm_podcast_gen
                 or "deepscaler" in Config.local_llm_podcast_gen
             ):
-                while "<think>" in clean_script and "</think" in clean_script:
-                    # remove think section from the final output
-                    start = clean_script.find("<think>")
-                    end = clean_script.find("</think>") + len("</think>")
-                    clean_script = clean_script[:start] + clean_script[end:]
+                # while "<think>" in clean_script and "</think" in clean_script:
+                #     # remove think section from the final output
+                #     start = clean_script.find("<think>")
+                #     end = clean_script.find("</think>") + len("</think>")
+                #     clean_script = clean_script[:start] + clean_script[end:]
+                # Remove everything inside <think>...</think> including the tags
+                clean_script = re.sub(r"<think>.*?</think>\n?", "", clean_script, flags=re.DOTALL)
 
             logging.info(f"=====chunk: {i+1} / {num_parts} :: \n\n {clean_script}")
 
