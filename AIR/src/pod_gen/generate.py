@@ -85,7 +85,6 @@ class PodGen:
     ) -> str:
         system_msg = podgen_instruction.format(
             talking_points=talking_points,
-            context=chat_context,
             conversation_style=convo_tone,
             output_language="ENGLISH",
             roles_person1=Config.roles_person1,
@@ -126,7 +125,7 @@ END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE M
         chunks = self.chunk_content(running_summary, chunk_size)
 
         # update prompt instruction with chat input_content chunk
-        chat_context = running_summary
+        chat_context = talking_points
         num_parts = len(chunks)
         logging.info(f"generating {num_parts} parts")
 
@@ -154,21 +153,8 @@ END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE M
             else:
                 chat_context += pod_script
 
-            logging.info(f"before cleaning----------- {pod_script}")
-
             # clean up
             clean_script = self._clean_tss_markup(pod_script)
-
-            # if "deepseek" in Config.local_llm_podcast_gen:
-            # while "<think>" in clean_script and "</think" in clean_script:
-            #     # remove think section from the final output
-            #     start = clean_script.find("<think>")
-            #     end = clean_script.find("</think>") + len("</think>")
-            #     clean_script = clean_script[:start] + clean_script[end:]
-            # Remove everything inside <think>...</think> including the tags
-            # clean_script = re.sub(
-            #     r"<think>.*?</think>\n?", "", clean_script, flags=re.DOTALL
-            # )
 
             logging.info(f"=====chunk: {i+1} / {num_parts} :: \n\n {clean_script}")
 

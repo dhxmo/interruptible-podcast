@@ -12,7 +12,7 @@ conversation between the hosts. THIS IS MOST IMPORTANT.
 # REQUIREMENTS
 - Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
 - Introduce disfluencies to make it sound like a real conversation. 
-- Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
+- VERY VERY IMPORTANT ---> Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
 - Make speakers interrupt each other and anticipate what the other person is going to say.
 - Make speakers react to what the other person is saying using phrases like, "Oh?" and "yeah?" 
 - Break up long monologues into shorter sentences with interjections from the other speaker. 
@@ -22,15 +22,13 @@ conversation between the hosts. THIS IS MOST IMPORTANT.
 - Use TTS-friendly elements and appropriate markup (except Amazon/Alexa specific tags)
 - Each speaker turn should be concise for natural conversation flow
 - Output in {output_language}
-- Aim for a comprehensive but engaging discussion
 - Include natural speech elements (filler words, feedback responses)
 - Start with <Host1> and end with <Host2>
 - Provide extensive examples and real-world applications                                                       
 - Include detailed analysis and multiple perspectives                                                          
 - Use the "yes, and" technique to build upon points                                                            
-- Incorporate relevant anecdotes and case studies                                                              
 - Balance detailed explanations with engaging dialogue                                                         
-- Maintain consistent voice throughout the extended discussion 
+- Maintain consistent voice throughout the extended discussion between generation from the followed up CONTEXT
 
 The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
 between Host1 or Host2. DO NOT NAME THE CHARACTERS. They are Host1 and Host2 only.
@@ -64,10 +62,6 @@ OUTPUT FORMAT:
 
  --------------------
 
-CONTEXT: {context}
-
----------------------
-
 INSTRUCTION: {instruction}
   
 Podcast conversation so far is given in CONTEXT.
@@ -82,9 +76,6 @@ or points already discussed.
  Hence, avoid statements such as "we'll discuss after a short break.  Stay tuned" or "Okay, so, picking up 
  where we left off".
  
- 
-
-
 output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
 only the hosts talking. a back and forth conversation between Host1 and Host2 is to be the only output. Don't name the hosts
 anything. There name is Host1 and Host2. they dont introduce themselves. The output from here is just the raw transcript 
@@ -97,6 +88,15 @@ TALKING POINTS: {talking_points}
 
  ----------------------
 
+THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
+Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
+between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only. Do NOT end the conversation with 
+look forward to the next one or any mention of the next time. You're generating a small segment of very very long podcast,
+so just output the script about the conversation between the Host1 and Host2. Do not name hosts. Create follow up conversations
+from what was previously found in CONTEXT
+"""
+
+internal = """
 [INTERNAL USE ONLY - Do not include in output]
 ```scratchpad
 [Attention Focus: TTS-Optimized Podcast Conversation Discussing Specific Input content in {output_language}]
@@ -143,10 +143,4 @@ closed, for instance <emphasis> should be closed with </emphasis>.]
 tag of the same type. Make sure Host1's text and its TSS-specific tags are inside the tag <Host1> and do the same 
 with Host2. Scratchpad should not belong in the output response. The conversation must start with <Host1> and end with <Host2>.]
 
-
-THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
-Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
-between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only. Do NOT end the conversation with 
-look forward to the next one or any mention of the next time. You're generating a small segment of very very long podcast,
-so just output the script about the conversation between the Host1 and Host2
 """
