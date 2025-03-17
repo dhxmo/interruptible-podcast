@@ -14,7 +14,7 @@ class PodGenStandard:
     def __init__(self):
         self.llm = ChatOllama(
             base_url=Config.ollama_base_url,
-            model=Config.local_llm_podcast_gen,
+            model=Config.local_llm_reasoning,
             temperature=0.2,
         )
 
@@ -49,6 +49,8 @@ class PodGenStandard:
         )
 
         pod_script = result.content
+        logging.info(f"=====clean script:: \n\n {pod_script}")
+
         clean_script = self._clean_tss_markup(pod_script)
         logging.info(f"=====clean script:: \n\n {clean_script}")
 
