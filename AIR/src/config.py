@@ -51,3 +51,9 @@ class Config:
         "again at the end with clear instructions (e.g., “Share your take with us!”). The "
         "challenges play off their contrasting styles for maximum effect."
     )
+
+    faster_whisper_model = "distil-medium.en"
+    # distil-medium.en : 280ms
+    # distil-large-v2 : 300 ms
+    # distil-large-v3: 300ms
+    # large-v2 : 350ms
