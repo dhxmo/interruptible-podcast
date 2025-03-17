@@ -29,6 +29,7 @@ class PodGenStandard:
             [
                 SystemMessage(
                     content=podgen_instruction.format(
+                        running_summary=running_summary,
                         conversation_style=convo_tone,
                         output_language="ENGLISH",
                         roles_person1=Config.roles_person1,
@@ -39,7 +40,6 @@ class PodGenStandard:
                 HumanMessage(
                     content=user_instruction.format(
                         talking_points=talking_points,
-                        running_summary=running_summary,
                         conversation_style=convo_tone,
                         output_language="ENGLISH",
                         engagement_techniques=Config.engagement_techniques,
@@ -49,16 +49,16 @@ class PodGenStandard:
         )
 
         pod_script = result.content
-        logging.info(f"=====pod script:: \n\n {pod_script}")
+
+        # needed for deepseek reasoning models :
         # Remove everything inside <think>...</think> including the tags
         clean_script = re.sub(
             r"<think>.*?</think>\n?", "", pod_script, flags=re.DOTALL
         ).strip()
 
-        # clean_script = self._clean_tss_markup(pod_script)
         logging.info(f"=====clean script:: \n\n {clean_script}")
 
-        session["podscript_script"] = pod_script
+        session["podscript_script"] = clean_script
 
     @staticmethod
     def _clean_tss_markup(input_text: str, additional_tags=None) -> str:

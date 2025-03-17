@@ -58,7 +58,10 @@ anything. There name is Host1 and Host2. they dont introduce themselves. The out
 of their conversation. The conversation is being constructed in small [arts that flow into each other. Given in the 
 CONTEXT is what we have so far. continue the conversation fluidly without mention of parts or chunks etc.
  
+---------------------------
 
+KNOWLEDGE BASE:
+The knowledge to consider to generate this script is : {running_summary}
 
  ----------------------------
 
@@ -140,16 +143,14 @@ TALKING POINTS: {talking_points}
 - Balance detailed explanations with engaging dialogue                                                         
 - Maintain consistent voice throughout the extended discussion between generation from the followed up CONTEXT
 
------------------
-KNOWLEDGE:
-The knowledge to consider to generate this script is : {running_summary}
-
 -----------
 
 Generate a 2500 word podcast script using the given talking points following the standard: Introduction, 
 Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
 talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
 
+VERY VERY IMPORTANT ---> Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
 Return nothing but the conversation between Host1 and Host2. nothing else. This output needs to be used for a TTS system,
 so no other output except the conversation is acceptable. No music, cues, nothing. Only the Host1 and Host2 back and forth conversation.
+Only place Host1 and Host2 is used is in defining who's dialogue is being spoken. They never mention their names. They have no names.
 """

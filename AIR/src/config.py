@@ -37,8 +37,11 @@ class Config:
     INDEX_PERSIST_DIRECTORY = "./data/chromadb"
 
     podcast_name = "AER"
-    roles_person1 = "main summarizer"
-    roles_person2 = "questioner/clarifier"
-    engagement_techniques = "analogies, examples, comparisons, contrast, anecdotes."
-    max_num_chunks = 10  # maximum number of rounds of discussions
-    min_chunk_size = 200  # minimum number of characters to generate a round of discussion in longform
+    roles_person1 = ("Provocateur: stirs the pot—asks bold, edgy questions, throws out hot takes, and challenges "
+                     "assumptions. hype machine—passionate, excitable, and all-in on every topic")
+    roles_person2 = ("Voice of Reason: counters with logic, wit, or a calming perspective, grounding the conversation. "
+                     "brings deep knowledge on the podcast’s niche—whether it’s tech or history")
+    engagement_techniques = ("Each host, based on their role, issues a specific challenge to the audience tied to the "
+                             "episode’s topic or their interplay. They present it mid-episode to hook listeners and "
+                             "again at the end with clear instructions (e.g., “Share your take with us!”). The "
+                             "challenges play off their contrasting styles for maximum effect.")
