@@ -14,7 +14,7 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.session_id = self.cm.create_session()
         self.pg = PodGen()
 
-    # TODO: --- human audio to response
+    # TODO: --- human audio transcribe
     def test_stt(self):
         # transcribe
         # add text to client manager -> input_audio_buffer
@@ -30,7 +30,7 @@ class AIRTestCasesUnit(unittest.TestCase):
         )
         self.assertGreater(len(search_result), 0)
 
-    # --- input prompt to talking points + RAG
+    # --- input prompt to talking points
     def test_deep_research_report(self):
         return asyncio.run(self._ds_report())
 
@@ -43,18 +43,11 @@ class AIRTestCasesUnit(unittest.TestCase):
 
         self.assertGreater(len(talking_points), 0)
 
-    # generate podcast script based on talking points
+    # --- generate podcast script based on talking points
     def test_generate_long_form_with_summary_talking_points(self):
         asyncio.run(self._podgen())
 
     async def _podgen(self):
-        # user_input = "tell me whats latest in quantum computing"
-        #
-        # talking_points = await self.dr.generate_report(
-        #     user_input, self.cm.sessions[self.session_id]
-        # )
-        #
-
         talking_points = """
        The field of quantum computing is advancing rapidly across multiple domains, with significant breakthroughs and emerging technologies. Here's an organized overview based on the latest developments:
 
