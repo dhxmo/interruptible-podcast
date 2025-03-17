@@ -18,7 +18,8 @@ pip install -r requirements.txt
 
 // ---- ollama
 curl -fsSL https://ollama.com/install.sh | sh
-ollama run deepscaler
+ollama run qwen2.5
+ollama run deepseek-r1
 
 for tests: venv
 venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_deep_research_report

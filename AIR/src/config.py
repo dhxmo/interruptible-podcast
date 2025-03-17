@@ -19,9 +19,9 @@ class Config:
     # local_llm_podcast_gen = "llama3.2:latest"
 
     # for testing on remote
-    local_llm = "qwen2.5:latest" #  test qwen2.5:latest, gemma3:4b and mistral7b
-    local_llm_reasoning = "deepseek-r1:8b"  # or deepscaler  --- test which works better
-    local_llm_podcast_gen = "deepseek-r1:8b"
+    local_llm = "qwen2.5:latest"  #  test qwen2.5:latest, gemma3:4b and mistral7b
+    local_llm_reasoning = "deepseek-r1:latest"
+    local_llm_podcast_gen = "deepseek-r1:latest"
 
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
