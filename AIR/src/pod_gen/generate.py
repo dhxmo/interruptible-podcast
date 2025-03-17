@@ -79,11 +79,13 @@ class PodGen:
         self,
         index: int,
         talking_points: str,
+        chat_context: str,
         convo_tone: str,
         total_parts: int,
     ) -> str:
         system_msg = podgen_instruction.format(
             talking_points=talking_points,
+            chat_context=chat_context,
             conversation_style=convo_tone,
             output_language="ENGLISH",
             roles_person1=Config.roles_person1,
@@ -130,15 +132,14 @@ END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE M
 
         for i, chunk in enumerate(chunks):
             system_msg = self.enhance_prompt_params(
-                i, talking_points, convo_tone, num_parts
+                i, talking_points, chat_context, convo_tone, num_parts
             )
             result = await self.llm.ainvoke(
                 [
                     SystemMessage(content=system_msg),
                     HumanMessage(
                         content=f""" Generate a podcast script of a long podcast conversation. 
-                        the current knowledge to consider to generate this part is :: \n {chunk}. 
-                        \n\n The conversation until now: {chat_context}"""
+                        the current knowledge to consider to generate this part is :: \n {chunk}. """
                     ),
                 ]
             )

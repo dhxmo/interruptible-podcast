@@ -58,6 +58,9 @@ CONTEXT is what we have so far. continue the conversation fluidly without mentio
 TALKING POINTS: {talking_points}
 
  ----------------------
+
+CONVERSATION UNTIL NOW: {chat_context}
+ 
 """
 
 internal = """
