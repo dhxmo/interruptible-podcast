@@ -110,14 +110,6 @@ closed, for instance <emphasis> should be closed with </emphasis>.]
 tag of the same type. Make sure Host1's text and its TSS-specific tags are inside the tag <Host1> and do the same 
 with Host2. Scratchpad should not belong in the output response. The conversation must start with <Host1> and end with <Host2>.]
 
-
-THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
-Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
-between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only.
-"""
-
-additional = """
-    
 <REQUIREMENTS>
 - Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
 - Introduce disfluencies to make it sound like a real conversation. 
@@ -134,14 +126,15 @@ additional = """
 - Aim for a comprehensive but engaging discussion
 - Include natural speech elements (filler words, feedback responses)
 - Start with <Host1> and end with <Host2>
+- Provide extensive examples and real-world applications                                                       
+- Include detailed analysis and multiple perspectives                                                          
+- Use the "yes, and" technique to build upon points                                                            
+- Incorporate relevant anecdotes and case studies                                                              
+- Balance detailed explanations with engaging dialogue                                                         
+- Maintain consistent voice throughout the extended discussion                                                 
 </REQUIREMENTS>
 
-Additionally: 
-     1. Provide extensive examples and real-world applications                                                       
-     2. Include detailed analysis and multiple perspectives                                                          
-     3. Use the "yes, and" technique to build upon points                                                            
-     4. Incorporate relevant anecdotes and case studies                                                              
-     5. Balance detailed explanations with engaging dialogue                                                         
-     6. Maintain consistent voice throughout the extended discussion                                                 
-     7. Generate a long conversation - output max_output_tokens tokens  
+THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
+Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
+between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only.
 """
