@@ -42,6 +42,8 @@ class PodGenStandard:
                         talking_points=talking_points,
                         conversation_style=convo_tone,
                         output_language="ENGLISH",
+                        roles_person1=Config.roles_person1,
+                        roles_person2=Config.roles_person2,
                         engagement_techniques=Config.engagement_techniques,
                     )
                 ),
