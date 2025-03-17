@@ -6,7 +6,10 @@ conversation are given in TALKING POINTS. Stay focused on discussing the given i
 [All output must be formatted as a conversation between Host1 and Host2. Include TTS-specific markup as needed.]
 
 THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
-Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
+Nothing else. No intro, no cues, no summarization in the end, no statement. nothing. only acceptable output is the 
+conversation between the hosts. THIS IS MOST IMPORTANT.
+
+The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
 between Host1 or Host2. DO NOT NAME THE CHARACTERS. They are Host1 and Host2 only.
 
 Do NOT mention the parts. The parts are just an internal use tool. DO NOT mention them in the generation.
