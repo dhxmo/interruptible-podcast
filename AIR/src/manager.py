@@ -1,5 +1,5 @@
 import uuid
-from collections import deque
+from queue import Queue
 
 
 class ClientManager:
@@ -13,9 +13,10 @@ class ClientManager:
             "running_summary": "",
             "follow_up_query": "",
             "web_search_results": [],
-            "audio_buffer": b"",
+            "input_audio_buffer": b"",
             "conversation": "",
-            "llm_output_sentences": deque(),
+            "podscript_sentences": Queue(maxsize=-1),
             "is_processing": False,
+            "output_buffer_queue": Queue(maxsize=-1),
         }
         return session_id

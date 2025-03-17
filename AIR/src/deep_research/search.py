@@ -14,7 +14,6 @@ from langchain_core.documents import Document
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.llms import VLLM
 
 from .dr_templates import (
     query_writer_instructions,
@@ -29,27 +28,29 @@ from ..config import Config
 
 class DeepResearcher:
     def __init__(self):
-        # self.llm = ChatOllama(
-        #     base_url=Config.ollama_base_url,
-        #     model=Config.local_llm,
-        #     temperature=0.2,
-        # )
-        # vllm serve mosaicml/mpt-7b --dtype=half
-        self.llm = VLLM(
-            model="mosaicml/mpt-7b",
-            trust_remote_code=True,  # mandatory for hf models
-            top_k=10,
-            top_p=0.95,
+        self.llm = ChatOllama(
+            base_url=Config.ollama_base_url,
+            model=Config.local_llm,
             temperature=0.2,
-            max_new_tokens=512,
-            dtype='half'
-            # vllm_kwargs={"quantization": "awq"},
-            # tensor_parallel_size=... # for distributed inference
+        )
+
+        # talking points and reflect with reasoning model; rest with the standard model
+        self.llm_reasoning = ChatOllama(
+            base_url=Config.ollama_base_url,
+            model=Config.local_llm_reasoning,
+            temperature=0.2,
         )
 
         self.llm_json_mode = ChatOllama(
             base_url=Config.ollama_base_url,
             model=Config.local_llm,
+            temperature=0.2,
+            format="json",
+        )
+
+        self.llm_reasoning_json_mode = ChatOllama(
+            base_url=Config.ollama_base_url,
+            model=Config.local_llm_reasoning,
             temperature=0.2,
             format="json",
         )
@@ -83,7 +84,9 @@ class DeepResearcher:
 
             current_summary = await self.summarize_sources(session)
             logging.info("summary generated")
-            session["running_summary"] = current_summary
+
+            # append new summarized knowledge to the previous knowledge
+            session["running_summary"] += current_summary
 
             count -= 1
 
@@ -199,7 +202,7 @@ class DeepResearcher:
 
     async def reflect(self, session: dict[str, Any]) -> str | None:
         try:
-            result = await self.llm_json_mode.ainvoke(
+            result = await self.llm_reasoning_json_mode.ainvoke(
                 [
                     SystemMessage(
                         content=reflection_instructions.format(
@@ -274,7 +277,7 @@ class DeepResearcher:
                 f"<Search Summary> \n {session.get('running_summary')} \n <Search Summary>"
             )
 
-            result = await self.llm.ainvoke(
+            result = await self.llm_reasoning.ainvoke(
                 [
                     SystemMessage(
                         content=talking_points_instructions.format(
