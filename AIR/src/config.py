@@ -21,7 +21,7 @@ class Config:
     # for testing on remote
     local_llm = "qwen2.5:latest"
     local_llm_reasoning = "deepseek-r1:latest"
-    local_llm_podcast_gen = "qwen2.5:latest"
+    local_llm_podcast_gen = "phi4:latest"
 
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000

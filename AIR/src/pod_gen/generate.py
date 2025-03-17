@@ -138,8 +138,8 @@ END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE M
                 [
                     SystemMessage(content=system_msg),
                     HumanMessage(
-                        content=f""" Generate a podcast script for part {i + 1} of {num_parts} parts of a 
-                    long podcast conversation. the current knowledge to consider to generate this part is :: \n {chunk}"""
+                        content=f""" Generate a podcast script of a long podcast conversation. 
+                        the current knowledge to consider to generate this part is :: \n {chunk}"""
                     ),
                 ]
             )
