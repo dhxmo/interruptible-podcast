@@ -155,12 +155,12 @@ END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE M
 
             logging.info(f"podscript---------{pod_script}")
             # clean up
-            clean_script = self._clean_tss_markup(pod_script)
+            # clean_script = self._clean_tss_markup(pod_script)
 
-            logging.info(f"=====chunk: {i+1} / {num_parts} :: \n\n {clean_script}")
+            logging.info(f"=====chunk: {i+1} / {num_parts} :: \n\n {pod_script}")
 
             # add each generated podcast chunk for session into queue
-            session["podscript_sentences"].put(clean_script)
+            session["podscript_sentences"].put(pod_script)
 
     @staticmethod
     def _clean_tss_markup(
