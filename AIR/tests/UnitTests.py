@@ -184,7 +184,7 @@ If you need more detailed information or specific references, feel free to ask!
         """
 
         conversational_tone = (
-            "Personal / Memoir – First-person storytelling, diary-style"
+            "Opinionated - Strong personal takes on topics."
         )
 
         await self.pg.podgen(
