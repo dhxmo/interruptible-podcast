@@ -1,5 +1,5 @@
-podgen_instruction_1 = """
-<TASK>
+podgen_instruction = """
+TASK:
 Generate a script for a podcast in a {conversation_style} tone, TTS-optimized podcast-style conversation that 
 DISCUSSES THE PROVIDED INPUT CONTENT. Do not generate content on a random topic. The points to be considered for the 
 conversation are given in TALKING POINTS. Stay focused on discussing the given input. 
@@ -18,11 +18,21 @@ That the parts are chunked is an internal device to break context up. the user d
 the conversation back and forth between the hosts in multiple parts, each part must continuously follow the other without 
 making it obvious that the whole thing is broken up into parts. Just respond with a conversation without any hooks that refer to chunks
 or parts etc. A fluid conversation between the hosts is desirable. 
-</TASK>
 
-Do NOT NAME the HOSTS. I want them to have generic names as Host1 and Host2
+output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
+only the hosts talking. a back and forth conversation between Host1 and Host2 is to be the only output. Don't name the hosts
+anything. There name is Host1 and Host2. they dont introduce themselves. The output from here is just the raw transcript 
+of their conversation. The conversation is being constructed in small [arts that flow into each other. Given in the 
+CONTEXT is what we have so far. continue the conversation fluidly without mention of parts or chunks etc.
 
-<OUTPUT FORMAT>
+THIS IS CRITICAL: Do NOT NAME the HOSTS. The output from this model requires generic names Host1 and Host2 for the voices.
+
+THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
+Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
+between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only.
+ --------------------
+ 
+OUTPUT FORMAT:
 <Host1>"We're discussing [topic from input text]."</Host1>
 <Host2>"That's right! Let's explore the key points."</Host2>
 <Host1> : ... (speech content) </Person1>
@@ -31,19 +41,14 @@ Do NOT NAME the HOSTS. I want them to have generic names as Host1 and Host2
 <Host2> : ... (speech content) </Host2>
 <Host1> : ... (speech content) </Host1>
 <Host2> : ... (speech content) </Host2>
-</OUTPUT FORMAT>
 
+ --------------------
 
-output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
-only the hosts talking. a back and forth conversation between Host1 and Host2 is to be the only output. Don't name the hosts
-anything. There name is Host1 and Host2. they dont introduce themselves. The output from here is just the raw transcript 
-of their conversation. The conversation is being constructed in small [arts that flow into each other. Given in the 
-CONTEXT is what we have so far. continue the conversation fluidly without mention of parts or chunks etc.
+CONTEXT: {context}
 
-<CONTEXT>: {context} </CONTEXT>
+---------------------
 
-<INSTRUCTION>: 
-{instruction}
+INSTRUCTION: {instruction}
   
 Podcast conversation so far is given in CONTEXT.
 Continue the natural flow of conversation. Follow-up on the very previous point/question without repeating topics 
@@ -56,13 +61,12 @@ or points already discussed.
  This is a live conversation without any breaks.
  Hence, avoid statements such as "we'll discuss after a short break.  Stay tuned" or "Okay, so, picking up 
  where we left off".
-</INSTRUCTION>
+ 
+ ----------------------
+ 
+TALKING POINTS: {talking_points}
 
-
-<TALKING POINTS>
-{talking_points}
-</TALKING POINTS>
-
+ ----------------------
 
 [INTERNAL USE ONLY - Do not include in output]
 ```scratchpad
@@ -110,7 +114,7 @@ closed, for instance <emphasis> should be closed with </emphasis>.]
 tag of the same type. Make sure Host1's text and its TSS-specific tags are inside the tag <Host1> and do the same 
 with Host2. Scratchpad should not belong in the output response. The conversation must start with <Host1> and end with <Host2>.]
 
-<REQUIREMENTS>
+# REQUIREMENTS
 - Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
 - Introduce disfluencies to make it sound like a real conversation. 
 - Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
@@ -132,14 +136,10 @@ with Host2. Scratchpad should not belong in the output response. The conversatio
 - Incorporate relevant anecdotes and case studies                                                              
 - Balance detailed explanations with engaging dialogue                                                         
 - Maintain consistent voice throughout the extended discussion                                                 
-</REQUIREMENTS>
 
-THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
-Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
-between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only.
 """
 
-podgen_instruction = """
+podgen_instruction_2 = """
 IDENTITY:
 You are an international Oscar winning screenwriter.
 You have been working with multiple award winning Podcasters.
