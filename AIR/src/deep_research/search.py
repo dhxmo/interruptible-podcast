@@ -222,7 +222,6 @@ class DeepResearcher:
             follow_up_query = json.loads(result.content)
 
             query = follow_up_query.get("follow_up_query")
-            logging.info(f"followup query from reasoning model::: {query}")
 
             if not query:
                 return f"Tell me about {session.get('research_topic')}"
@@ -297,15 +296,18 @@ class DeepResearcher:
             talking_points = result.content
 
             # deepseek specific
-            if (
-                "deepseek" in Config.local_llm
-                or "deepseek" in Config.local_llm_reasoning
-            ):
-                while "<think>" in talking_points and "</think" in talking_points:
-                    # remove think section from the final output
-                    start = talking_points.find("<think>")
-                    end = talking_points.find("</think>") + len("</think>")
-                    talking_points = talking_points[:start] + talking_points[end:]
+            # leave think parts in the talking points withdeepseek. hopefully the think helps
+            # the next model to come up with a good podcast script
+
+            # if (
+            #     "deepseek" in Config.local_llm
+            #     or "deepseek" in Config.local_llm_reasoning
+            # ):
+            #     while "<think>" in talking_points and "</think" in talking_points:
+            #         # remove think section from the final output
+            #         start = talking_points.find("<think>")
+            #         end = talking_points.find("</think>") + len("</think>")
+            #         talking_points = talking_points[:start] + talking_points[end:]
 
             return talking_points
 
