@@ -20,7 +20,7 @@ between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 onl
 look forward to the next one or any mention of the next time. You're generating a small segment of very very long podcast,
 so just output the script about the conversation between the Host1 and Host2
 
- Generate a 2500 word podcast script using the given talking points following the standard: Introduction, 
+ Generate a 5500 word podcast script using the given talking points following the standard: Introduction, 
  Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
  talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
  
@@ -65,7 +65,7 @@ The knowledge to consider to generate this script is : {running_summary}
 
  ----------------------------
 
- Generate a 2500 word podcast script using the given talking points following the standard: Introduction, 
+ Generate a 5500 word podcast script using the given talking points following the standard: Introduction, 
  Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
  talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
 
@@ -145,7 +145,7 @@ TALKING POINTS: {talking_points}
 
 -----------
 
-Generate a 2500 word podcast script using the given talking points following the standard: Introduction, 
+Generate a 5500 word podcast script using the given talking points following the standard: Introduction, 
 Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
 talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
 
