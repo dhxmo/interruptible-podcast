@@ -153,6 +153,7 @@ END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE M
             else:
                 chat_context += pod_script
 
+            logging.info(f"podscript---------{pod_script}")
             # clean up
             clean_script = self._clean_tss_markup(pod_script)
 
