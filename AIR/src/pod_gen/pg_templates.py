@@ -62,59 +62,6 @@ CONTEXT is what we have so far. continue the conversation fluidly without mentio
 
 KNOWLEDGE BASE:
 The knowledge to consider to generate this script is : {running_summary}
-
- ----------------------------
-
- Generate a 5500 word podcast script using the given talking points following the standard: Introduction, 
- Main Content and Ending remarks, weaving the TALKING POINTS together into an engaging realistic conversation. If the 
- talking points cannot all be addressed that is ok, but create a realistic conversation between the two hosts.
-
-[INTERNAL USE ONLY - Do not include in output]
-```scratchpad
-[Attention Focus: TTS-Optimized Podcast Conversation Discussing Specific Input content in {output_language}]
-[PrimaryFocus:  {conversation_style} tone Dialogue Discussing Provided Content for TTS]
-[Strive for a natural, {conversation_style} tone dialogue that accurately discusses the provided input content. 
-DO NOT INCLUDE scratchpad block IN OUTPUT.  Hide this section in your output.]
-[InputContentAnalysis: Carefully read and analyze the provided input content, identifying key points, themes, and structure]
-[ConversationSetup: Define roles (Host1 as {roles_person1}, Host2 as {roles_person2}), focusing on the input 
-content's topic. Host1 and Host2 should NOT be named nor introduce themselves, avoid using statements 
-such as "I\'m [Host1\'s Name]". Host1 and Host2 should not say they are summarizing content. Instead, 
-they should act as unnamed experts in the input content. Avoid using statements such as "Today, we're summarizing a 
-fascinating conversation about ..." . They should not impersonate people from INPUT, instead they are discussing INPUT.]
-[TopicExploration: Outline main points from the input content to cover in the conversation, ensuring comprehensive coverage]
-[Tone: {conversation_style}. Surpass human-level reasoning where possible]
-[EngagementTechniques: Incorporate engaging elements while staying true to the input content's content, 
-e_g use {engagement_techniques} to transition between topics. THIS IS IMPORTANT: <IMPORTANT>Include at least one instance where a Person 
-respectfully challenges or critiques a point made by the other.</IMPORTANT>]
-[InformationAccuracy: Ensure all information discussed is directly from or closely related to the input content]
-[NaturalLanguage: Use conversational language to present the text's information, including TTS-friendly elements. 
-Be emotional. Simulate a multispeaker conversation with overlapping speakers with back-and-forth banter. Each speaker 
-turn should not last too long. Result should strive for an overlapping conversation with often short sentences emulating 
-a natural conversation.]
-[SpeechSynthesisOptimization: Craft sentences optimized for TTS, including advanced markup, while discussing the content. 
-TTS markup should apply to Google, OpenAI, ElevenLabs and Microsoft Edge TTS models. DO NOT INCLUDE AMAZON OR ALEXA 
-specific TSS MARKUP SUCH AS "<amazon:emotion>". Make sure Host1's text and its TSS-specific tags are inside the tag 
-<Host1> and do the same with Host2.]
-[ProsodyAdjustment: Add Variations in rhythm, stress, and intonation of speech depending on the context and statement. 
-Add markup for pitch, rate, and volume variations to enhance naturalness in presenting the summary]
-[NaturalTraits: Sometimes use filler words such as um, uh, you know and some stuttering. Host1 should sometimes provide 
-verbal feedback such as "I see, interesting, got it". ]
-[EmotionalContext: Set context for emotions through descriptive text and dialogue tags, appropriate to the input text's tone]
-[PauseInsertion: Avoid using breaks (<break> tag) but if included they should not go over 0.2 seconds]
-[TTS Tags: Do not use "<emphasis> tags" or "say-as interpret-as tags" such as <say-as interpret-as="characters">Klee</say-as>]
-[PunctuationEmphasis: Strategically use punctuation to influence delivery of key points from the content]
-[VoiceCharacterization: Provide distinct voice characteristics for Host1 and Host2 while maintaining focus on the text]
-[InputTextAdherence: Continuously refer back to the input content, ensuring the conversation stays on topic]
-[FactChecking: Double-check that all discussed points accurately reflect the input content]
-[Metacognition: Analyze dialogue quality (Accuracy of Summary, Engagement, TTS-Readiness). Make sure TSS tags are properly 
-closed, for instance <emphasis> should be closed with </emphasis>.]
-[Refinement: Suggest improvements for clarity, accuracy of summary, and TTS optimization. Avoid slangs.]
-[Length: Aim for a very long conversation. Use max_output_tokens limit. But each speaker turn should not be too long.]
-[Language: Output language should be in {output_language}.]
-[FORMAT: Output format should contain only <Host1> and <Host2> tags. All open tags should be closed by a corresponding 
-tag of the same type. Make sure Host1's text and its TSS-specific tags are inside the tag <Host1> and do the same 
-with Host2. Scratchpad should not belong in the output response. The conversation must start with <Host1> and end with <Host2>.]
-
 """
 
 
