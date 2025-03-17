@@ -11,21 +11,21 @@ def id_generator(length):
 
 @dataclass(kw_only=True)
 class Config:
-    research_loop_count: int = 2
+    research_loop_count: int = 3
 
     # only for testing on local CPU
-    local_llm = "qwen2.5:0.5b"
-    local_llm_reasoning = "llama3.2:latest"
-    local_llm_podcast_gen = "llama3.2:latest"
+    # local_llm = "qwen2.5:0.5b"
+    # local_llm_reasoning = "llama3.2:latest"
+    # local_llm_podcast_gen = "llama3.2:latest"
 
     # for testing on remote
-    # local_llm = "qwen2.5:latest" #  test qwen2.5:latest, gemma3:4b and mistral7b
-    # local_llm_reasoning = "deepseek-r1:8b"  # or deepscaler  --- test which works better
-    # local_llm_podcast_gen = "deepseek-r1:8b"
+    local_llm = "qwen2.5:latest" #  test qwen2.5:latest, gemma3:4b and mistral7b
+    local_llm_reasoning = "deepseek-r1:8b"  # or deepscaler  --- test which works better
+    local_llm_podcast_gen = "deepseek-r1:8b"
 
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
-    search_max_results = 1
+    search_max_results = 2
     fetch_full_page = True
     ollama_base_url = "http://localhost:11434/"
     uuid = id_generator(7)
