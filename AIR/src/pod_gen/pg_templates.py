@@ -8,7 +8,21 @@ conversation are given in TALKING POINTS. Stay focused on discussing the given i
 THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
 Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
 between Person1 or Person2. Do NOT name the characters. They are Person1 and Person2 only.
+
+Do NOT mention the parts. The parts are just an internal use tool. DO NOT mention them in the generation.
+Just respond back with the conversation between Person1 and Person2. nothing else.
 </TASK>
+
+<OUTPUT FORMAT>
+<Person1>"We're discussing [topic from input text]."</Person1>
+<Person2>"That's right! Let's explore the key points."</Person2>
+<Person1> : ... (speech content) </Person1>
+<Person2> : ... (speech content) </Person2>
+<Person1> : ... (speech content) </Person1>
+<Person2> : ... (speech content) </Person2>
+<Person1> : ... (speech content) </Person1>
+<Person2> : ... (speech content) </Person2>
+</OUTPUT FORMAT>
 
 <CONTEXT>: {context} </CONTEXT>
 
@@ -71,16 +85,7 @@ only the hosts talking. a back and forth conversation between Person1 and Person
 anything. There name is Person1 and Person2. they dont introduce themselves. The output from here is just the raw transcript 
 of their conversation in the below format:
 
-<OUTPUT FORMAT>
-<Person1>"We're discussing [topic from input text]."</Person1>
-<Person2>"That's right! Let's explore the key points."</Person2>
-<Person1> : ... (speech content) </Person1>
-<Person2> : ... (speech content) </Person2>
-<Person1> : ... (speech content) </Person1>
-<Person2> : ... (speech content) </Person2>
-<Person1> : ... (speech content) </Person1>
-<Person2> : ... (speech content) </Person2>
-</OUTPUT FORMAT>
+
 
 
 [INTERNAL USE ONLY - Do not include in output]
