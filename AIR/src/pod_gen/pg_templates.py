@@ -9,27 +9,39 @@ THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and fort
 Nothing else. No intro, no cues, no summarization in the end, no statement. nothing. only acceptable output is the 
 conversation between the hosts. THIS IS MOST IMPORTANT.
 
+# REQUIREMENTS
+- Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
+- Introduce disfluencies to make it sound like a real conversation. 
+- Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
+- Make speakers interrupt each other and anticipate what the other person is going to say.
+- Make speakers react to what the other person is saying using phrases like, "Oh?" and "yeah?" 
+- Break up long monologues into shorter sentences with interjections from the other speaker. 
+- Avoid introductions or meta-commentary about summarizing content
+- AVOID REPETITIONS: For instance, do not say "absolutely" and "exactly" or "definitely" too much. Use them sparingly. 
+- Make speakers sometimes complete each other's sentences.
+- Use TTS-friendly elements and appropriate markup (except Amazon/Alexa specific tags)
+- Each speaker turn should be concise for natural conversation flow
+- Output in {output_language}
+- Aim for a comprehensive but engaging discussion
+- Include natural speech elements (filler words, feedback responses)
+- Start with <Host1> and end with <Host2>
+- Provide extensive examples and real-world applications                                                       
+- Include detailed analysis and multiple perspectives                                                          
+- Use the "yes, and" technique to build upon points                                                            
+- Incorporate relevant anecdotes and case studies                                                              
+- Balance detailed explanations with engaging dialogue                                                         
+- Maintain consistent voice throughout the extended discussion 
+
 The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
 between Host1 or Host2. DO NOT NAME THE CHARACTERS. They are Host1 and Host2 only.
-
-Do NOT mention the parts. The parts are just an internal use tool. DO NOT mention them in the generation.
-Just respond back with the conversation between Host1 and Host2. nothing else. DO Not say we will be back in another part etc. 
-That the parts are chunked is an internal device to break context up. the user doesnt need to know this. You must only return 
-the conversation back and forth between the hosts in multiple parts, each part must continuously follow the other without 
-making it obvious that the whole thing is broken up into parts. Just respond with a conversation without any hooks that refer to chunks
-or parts etc. A fluid conversation between the hosts is desirable. 
-
-output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
-only the hosts talking. a back and forth conversation between Host1 and Host2 is to be the only output. Don't name the hosts
-anything. There name is Host1 and Host2. they dont introduce themselves. The output from here is just the raw transcript 
-of their conversation. The conversation is being constructed in small [arts that flow into each other. Given in the 
-CONTEXT is what we have so far. continue the conversation fluidly without mention of parts or chunks etc.
 
 THIS IS CRITICAL: Do NOT NAME the HOSTS. The output from this model requires generic names Host1 and Host2 for the voices.
 
 THIS IS THE MOST IMPORTANT INSTRUCTION: No other output except the back and forth conversation between the hosts.
 Nothing else. The output should only be what is defined in OUTPUT FORMAT. Respond with nothing but the back and forth conversation
-between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only.
+between Host1 or Host2. Do NOT name the characters. They are Host1 and Host2 only. Do NOT end the conversation with 
+look forward to the next one or any mention of the next time. You're generating a small segment of very very long podcast,
+so just output the script about the conversation between the Host1 and Host2
  --------------------
  
 OUTPUT FORMAT:
@@ -113,33 +125,24 @@ closed, for instance <emphasis> should be closed with </emphasis>.]
 [FORMAT: Output format should contain only <Host1> and <Host2> tags. All open tags should be closed by a corresponding 
 tag of the same type. Make sure Host1's text and its TSS-specific tags are inside the tag <Host1> and do the same 
 with Host2. Scratchpad should not belong in the output response. The conversation must start with <Host1> and end with <Host2>.]
-
-# REQUIREMENTS
-- Create a natural, {conversation_style} tone dialogue that accurately discusses the provided input content
-- Introduce disfluencies to make it sound like a real conversation. 
-- Host1 and Host2 should act as UNNAMED experts, avoid using statements such as "I\'m [Host1\'s Name]".
-- Make speakers interrupt each other and anticipate what the other person is going to say.
-- Make speakers react to what the other person is saying using phrases like, "Oh?" and "yeah?" 
-- Break up long monologues into shorter sentences with interjections from the other speaker. 
-- Avoid introductions or meta-commentary about summarizing content
-- AVOID REPETITIONS: For instance, do not say "absolutely" and "exactly" or "definitely" too much. Use them sparingly. 
-- Make speakers sometimes complete each other's sentences.
-- Use TTS-friendly elements and appropriate markup (except Amazon/Alexa specific tags)
-- Each speaker turn should be concise for natural conversation flow
-- Output in {output_language}
-- Aim for a comprehensive but engaging discussion
-- Include natural speech elements (filler words, feedback responses)
-- Start with <Host1> and end with <Host2>
-- Provide extensive examples and real-world applications                                                       
-- Include detailed analysis and multiple perspectives                                                          
-- Use the "yes, and" technique to build upon points                                                            
-- Incorporate relevant anecdotes and case studies                                                              
-- Balance detailed explanations with engaging dialogue                                                         
-- Maintain consistent voice throughout the extended discussion                                                 
-
 """
 
 podgen_instruction_2 = """
+
+
+Do NOT mention the parts. The parts are just an internal use tool. DO NOT mention them in the generation.
+Just respond back with the conversation between Host1 and Host2. nothing else. DO Not say we will be back in another part etc. 
+That the parts are chunked is an internal device to break context up. the user doesnt need to know this. You must only return 
+the conversation back and forth between the hosts in multiple parts, each part must continuously follow the other without 
+making it obvious that the whole thing is broken up into parts. Just respond with a conversation without any hooks that refer to chunks
+or parts etc. A fluid conversation between the hosts is desirable. 
+
+output should be only the hosts talking back and forth. NOTHING ELSE. THIS IS IMPORTANT. no intro and no outro. Nothing else.
+only the hosts talking. a back and forth conversation between Host1 and Host2 is to be the only output. Don't name the hosts
+anything. There name is Host1 and Host2. they dont introduce themselves. The output from here is just the raw transcript 
+of their conversation. The conversation is being constructed in small [arts that flow into each other. Given in the 
+CONTEXT is what we have so far. continue the conversation fluidly without mention of parts or chunks etc.
+
 IDENTITY:
 You are an international Oscar winning screenwriter.
 You have been working with multiple award winning Podcasters.
