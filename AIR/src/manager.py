@@ -19,5 +19,6 @@ class ClientManager:
             "podscript_script": "",
             "is_processing": False,
             "output_buffer_queue": Queue(maxsize=-1),
+            "current_sentence_idx": int,
         }
         return session_id

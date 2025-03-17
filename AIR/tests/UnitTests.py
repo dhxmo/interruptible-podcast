@@ -15,17 +15,13 @@ class AIRTestCasesUnit(unittest.TestCase):
         self.cm = ClientManager()
         self.session_id = self.cm.create_session()
         self.pg = PodGenStandard()
-        self.tts = FasterWhisperEngine()
-        self.stt = SpeechGen()
-        self.speaker_lookup = {
-            "Host1": "am_puck(1)+am_michael(1.5)",
-            "Host2": "am_puck(1)+am_echo(1.5)",
-        }
+        self.stt = FasterWhisperEngine()
+        self.tts = SpeechGen()
 
     # --- human audio transcribe
     def test_stt(self):
         # TODO: file input for testing. in main, stream audio and save as buffer, pass buffer directly to function
-        full_text = self.tts.transcribe(
+        full_text = self.stt.transcribe(
             self.cm.sessions[self.session_id], "./data/male.wav"
         )
 
@@ -208,16 +204,9 @@ If you need more detailed information or specific references, feel free to ask!
             len(self.cm.sessions[self.session_id]["podscript_script"]), 0
         )
 
-    # TODO: --- tts
+    # --- tts
     def test_tts(self):
-        lines = [line.strip() for line in podcast_script.strip().split("\n") if line]
-        dialogues = [(line.split(":")[0], line.split(":")[1].strip()) for line in lines]
-
-        for i, (speaker, sentence) in enumerate(dialogues):
-            if speaker not in self.speaker_lookup:
-                continue
-
-            self.stt.stream_response(None, self.speaker_lookup[speaker], sentence)
+        self.tts.generate_speech(self.cm.sessions[self.session_id], podcast_script)
 
     # TODO: --- split on sentences and implement human interrupt
     def test_queue_fetch_interrupt_contextual_update_in_queue(self):
