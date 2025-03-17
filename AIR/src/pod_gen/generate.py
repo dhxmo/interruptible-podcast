@@ -49,8 +49,6 @@ class PodGenStandard:
         )
 
         pod_script = result.content
-        logging.info(f"=====pod script:: \n\n {pod_script}")
-
         clean_script = self._clean_tss_markup(pod_script)
         logging.info(f"=====clean script:: \n\n {clean_script}")
 

@@ -20,4 +20,4 @@ ollama run hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0
 
 for tests: venv
 venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_deep_research_report
-venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_generate_long_form_with_summary_talking_points
+venv/bin/python -m pytest AIR/tests/UnitTests.py::AIRTestCasesUnit::test_generate_with_summary_talking_points

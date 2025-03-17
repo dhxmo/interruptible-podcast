@@ -200,6 +200,29 @@ If you need more detailed information or specific references, feel free to ask!
 
     # TODO: --- split on sentences and implement human interrupt
     def test_queue_fetch_interrupt_contextual_update_in_queue(self):
+        podcast_script = """
+        Host 1: Welcome to "Quantum Leap," the podcast where we dive into the cutting-edge world of quantum computing. I’m your host, Alex.
+Host 2: And I’m Jamie. Today, we’re going to explore the latest breakthroughs in quantum hardware and software that are making this technology more accessible and powerful than ever.
+Main Content:
+Host 1: Let’s start with the topological quantum processor. This is a major leap forward, enabling faster and more secure computation. What can you tell us about it?
+Host 2: Yeah, so these processors use topological quantum field theory to create robust and fault-tolerant systems. It’s like building a quantum computer that doesn’t break easily—big deal for scalability.
+Host 1: That’s wild. And what about the hypercube network technologies? How are they changing the game?
+Host 2: Hypercubes are basically quantum computers on steroids. They solve communication bottlenecks and make these systems way faster than anything we’ve seen before. It’s like upgrading from dial-up to fiber optic internet.
+Host 1: Post-quantum cryptography is another area that’s getting a lot of attention. Why is this important?
+Host 2: Because quantum computers can fuck up current encryption methods, and post-quantum crypto fixes that. It’s about making sure our data stays secure even when Skynet-level quantum machines show up.
+Host 1: Quantum machine learning integration with frameworks like TorchQC is also really exciting. What kind of impact are we looking at?
+Host 2: This shit could make AI smarter than your mom’s Amazon Alexa. Deep learning techniques in quantum dynamics and control? Yeah, that’s some next-level wizardry.
+Host 1: And let’s not forget about the materials science breakthroughs—germanium and GeSn-based quantum well lasers are pushing efficiency to new heights.
+Host 2: These materials aren’t just cool; they’re crucial for making quantum hardware faster, smaller, and more efficient. It’s like upgrading your smartphone every year but with actual progress this time.
+Host 1: Hybrid approaches combining quantum and classical systems are also worth mentioning. Why is that?
+Host 2: Because sometimes you need the best of both worlds to solve complex problems. Quantum-classical hybrids are like having a cheat code for tough tasks.
+Host 1: Finally, quantum optimisation algorithms on Rydberg atom arrays are showing insane results. What’s the deal with that?
+Host 2: These algorithms crush it on complex problems in logistics and energy. It’s like having a superpower for solving hard optimization tasks.
+Host 1: And quantum chemistry applications? That’s where we see real-world impact, from drug discovery to materials design.
+Host 2: Yeah, quantum computers are basically becoming the Swiss Army knife of science and engineering. This tech is not just “future”—it’s already here changing shit.
+Host 1: Thanks for joining us on this quantum adventure! If you want more info or have questions, feel free to reach out.
+Host 2: And don’t forget to subscribe to our podcast for more in-depth explorations of the tech world.
+        """
         pass
 
     # TODO: --- tts
