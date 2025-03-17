@@ -99,7 +99,9 @@ class DeepResearcher:
             logging.info("summary reflected")
 
         talking_points = await self.generate_talking_points(session)
-        logging.info(f"talking points generated::: {talking_points}")
+
+        logging.info(f"\n\ntalking points generated::: {talking_points}")
+        logging.info(f"\n\nrunning summary generated::: {session['running_summary']}")
 
         return talking_points
 
@@ -188,7 +190,10 @@ class DeepResearcher:
             running_summary = result.content
 
             # deepseek specific
-            if "deepseek" in Config.local_llm:
+            if (
+                "deepseek" in Config.local_llm
+                or "deepseek" in Config.local_llm_reasoning
+            ):
                 while "<think>" in running_summary and "</think" in running_summary:
                     # remove think section from the final output
                     start = running_summary.find("<think>")
@@ -217,6 +222,8 @@ class DeepResearcher:
             follow_up_query = json.loads(result.content)
 
             query = follow_up_query.get("follow_up_query")
+            logging.info(f"followup query from reasoning model::: {query}")
+
             if not query:
                 return f"Tell me about {session.get('research_topic')}"
 
@@ -290,7 +297,10 @@ class DeepResearcher:
             talking_points = result.content
 
             # deepseek specific
-            if "deepseek" in Config.local_llm:
+            if (
+                "deepseek" in Config.local_llm
+                or "deepseek" in Config.local_llm_reasoning
+            ):
                 while "<think>" in talking_points and "</think" in talking_points:
                     # remove think section from the final output
                     start = talking_points.find("<think>")
@@ -336,7 +346,10 @@ class DeepResearcher:
                     content_extracted = result.content
 
                     # deepseek specific
-                    if "deepseek" in Config.local_llm:
+                    if (
+                        "deepseek" in Config.local_llm
+                        or "deepseek" in Config.local_llm_reasoning
+                    ):
                         while (
                             "<think>" in content_extracted
                             and "</think" in content_extracted

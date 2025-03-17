@@ -41,9 +41,6 @@ class AIRTestCasesUnit(unittest.TestCase):
             user_input, self.cm.sessions[self.session_id]
         )
 
-        print("\n\ntalking points", talking_points)
-        print("\n\n summary", self.cm.sessions[self.session_id]["running_summary"])
-
         self.assertGreater(len(talking_points), 0)
 
     # generate podcast script based on talking points
