@@ -94,18 +94,19 @@ class PodGen:
             instruction="{instruction}",
         )
         if index == 0:
-            intro = f"""ALWAYS START THE CONVERSATION GREETING THE AUDIENCE: Welcome to {Config.podcast_name}. Where we talk about what matters to you.                                     
+            intro = f"""ALWAYS START THE CONVERSATION GREETING THE AUDIENCE: Welcome to {Config.podcast_name}. 
+            Where we talk about what matters to you.                                     
 You are generating the Introduction part of a long podcast conversation.
- Don't cover any topics yet, just introduce yourself and the topic. Leave the rest for later parts"""
+ Don't cover any topics yet, just introduce yourself and the topic"""
             system_msg.format(instruction=intro)
         elif index == total_parts - 1:
             outro = """You are generating the last part of a long podcast conversation. 
 For this part, discuss the below INPUT and then make concluding remarks in a podcast conversation format and 
-END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE MESSAGE, following these guidelines:"""
+END THE CONVERSATION GREETING THE AUDIENCE WITH PERSON1 ALSO SAYING A GOOD BYE MESSAGE:"""
             system_msg.format(instruction=outro)
         else:
-            msg = f"""You are generating part {index+1} of {total_parts} parts of a long podcast conversation.
-Generate content based on the provided input and context. Generate such that the narrative flows between the different parts"""
+            msg = f"""Generate content based on the provided input and context. Generate such that the narrative flows 
+            between the different parts mentioned in the context"""
             system_msg.format(instruction=msg)
 
         return system_msg

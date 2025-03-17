@@ -21,7 +21,7 @@ class Config:
     # for testing on remote
     local_llm = "qwen2.5:latest"  #  test qwen2.5:latest, gemma3:4b and mistral7b
     local_llm_reasoning = "deepseek-r1:latest"
-    local_llm_podcast_gen = "gemma3:12b"
+    local_llm_podcast_gen = "phi4:latest"
 
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
