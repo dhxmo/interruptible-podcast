@@ -88,6 +88,10 @@ class AIRTestCasesUnit(unittest.TestCase):
             self.cm.sessions[self.session_id]["podscript_sentences"].qsize(), 0
         )
 
+    # TODO: --- human interrupt
+    def test_queue_fetch_interrupt_contextual_update_in_queue(self):
+        pass
+
     # TODO: --- tts
     def test_tts(self):
         # use kokoro-tts with onnx
