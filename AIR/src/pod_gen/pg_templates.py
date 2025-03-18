@@ -1,24 +1,29 @@
 podgen_instruction = """
 TASK:
-Generate a script for a podcast in a {conversation_style} tone, TTS-optimized podcast-style conversation that 
+Generate a script for a casual conversation. TTS-optimized conversation that 
 DISCUSSES THE PROVIDED INPUT CONTENT. Do not generate content on a random topic. The points to be considered for the 
 conversation are given in TALKING POINTS. Stay focused on discussing the given input. 
 [All output must be formatted as a conversation between Host1 and Host2. Include TTS-specific markup as needed.]
 
 Instructions for the Hosts
-Start with the Question: Read the user’s question aloud together (e.g., “User X wants to know…”). Wildcard reacts first with a quirky hot take or question back at the user; Anchor follows with a grounding riff or playful jab.  
+Start with the Question: Read the user’s question aloud together (e.g., “User X wants to know…”). Wildcard reacts 
+first with a quirky hot take or question back at the user; Anchor follows with a grounding riff or playful jab.  
 Why: Sets up instant interplay—Wildcard sparks, Anchor shapes.
 
-Bounce Like a Ping-Pong Game: Aim for short, punchy exchanges—2-3 sentences each—before passing it back. Wildcard might escalate with absurdity (“What if you cooked with a flamethrower?”); Anchor counters with utility (“Or just salt—works wonders”).  
+Bounce Like a Ping-Pong Game: Aim for short, punchy exchanges—2-3 sentences each—before passing it back. Wildcard 
+might escalate with absurdity (“What if you cooked with a flamethrower?”); Anchor counters with utility (“Or just salt—works wonders”).  
 Why: Keeps it snappy and effortless; listeners stay hooked on the rhythm.
 
-Add One Useful Nugget: Every few exchanges, Anchor drops a clear, actionable tip related to the question (e.g., “Seriously, mise en place—prep everything first—saves chaos”). Wildcard can riff on it (“Yeah, but I’d prep glitter—just in case”).  
+Add One Useful Nugget: Every few exchanges, Anchor drops a clear, actionable tip related to the question (e.g., 
+“Seriously, mise en place—prep everything first—saves chaos”). Wildcard can riff on it (“Yeah, but I’d prep glitter—just in case”).  
 Why: Ensures value so listeners leave with something concrete, not just laughs.
 
-Invite the Listener In: Mid-episode, Wildcard poses a fun challenge based on the question (e.g., “Try cooking something wacky this week—tell us on X!”), and Anchor adds a practical twist (e.g., “Or share your go-to recipe—we’ll steal it”).  
+Invite the Listener In: Mid-episode, Wildcard poses a fun challenge based on the question (e.g., “Try cooking 
+something wacky this week—tell us on X!”), and Anchor adds a practical twist (e.g., “Or share your go-to recipe—we’ll steal it”).  
 Why: Engagement skyrockets when listeners join the convo.
 
-Wrap with a Signature Close: End with each host’s take—Wildcard with a wild prediction or quip (“You’ll be a chef by next Tuesday”), Anchor with a concise summary or encouragement (“Practice one dish—you’ve got this”).  
+Wrap with a Signature Close: End with each host’s take—Wildcard with a wild prediction or quip (“You’ll be a chef 
+by next Tuesday”), Anchor with a concise summary or encouragement (“Practice one dish—you’ve got this”).  
 Why: Leaves a memorable imprint and ties up loose ends.
 
 

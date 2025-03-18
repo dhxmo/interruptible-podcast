@@ -5,11 +5,11 @@ from fastapi import WebSocket
 from openai import OpenAI
 
 # TODO only for local testing purposes
-import pyaudio
-
-player = pyaudio.PyAudio().open(
-    format=pyaudio.paInt16, channels=1, rate=24000, output=True
-)
+# import pyaudio
+#
+# player = pyaudio.PyAudio().open(
+#     format=pyaudio.paInt16, channels=1, rate=24000, output=True
+# )
 
 
 class SpeechGen:

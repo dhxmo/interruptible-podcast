@@ -50,7 +50,7 @@ class AIRTestCasesUnit(unittest.TestCase):
 
         self.assertGreater(len(talking_points), 0)
 
-    # --- generate podcast script based on talking points - single. non-chunked
+    # --- TODO: generate conversation based on talking points
     def test_generate_with_summary_talking_points(self):
         asyncio.run(self._podgen())
 

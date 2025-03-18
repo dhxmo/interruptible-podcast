@@ -26,3 +26,10 @@ class FasterWhisperEngine:
         session["input_user_interruption"] = full_text
 
         return full_text
+
+    def transcribe_webm(self, audio: str | BinaryIO | ndarray):
+        segments, _ = self.model.transcribe(audio, beam_size=5)
+        full_text = "".join(segment.text for segment in segments)
+        logging.info(f"transcribed text: {full_text}")
+
+        return full_text

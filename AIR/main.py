@@ -1,23 +1,16 @@
 import argparse
 import json
-import logging
-from contextlib import asynccontextmanager
+from io import BytesIO
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from tests.constants import podcast_script
 from src.deep_research.search import DeepResearcher
-from src.manager import ClientManager
 from src.pod_gen.generate import PodGenStandard
 from src.speech_gen import SpeechGen
 from src.whisper import FasterWhisperEngine
-
-# dr = DeepResearcher | None
-# pg = PodGenStandard | None
-# stt = SpeechGen | None
-# tts = FasterWhisperEngine | None
 
 dr = DeepResearcher()
 pg = PodGenStandard()
@@ -25,17 +18,6 @@ stt = FasterWhisperEngine()
 tts = SpeechGen()
 
 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     global dr, pg, stt, tts
-#
-#
-#
-#     yield
-#
-#     # free up resources on yield
-
-# app = FastAPI(lifespan=lifespan)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -65,73 +47,112 @@ args = parser.parse_args()
 
 # -------------------------
 # Load demo HTML for the root endpoint
-with open("web/index.html", "r", encoding="utf-8") as f:
-    html = f.read()
+# with open("web/index.html", "r", encoding="utf-8") as f:
+#     html = f.read()
+#
+#
+# @app.get("/")
+# async def get():
+#     return FileResponse("web/index.html")
 
 
-@app.get("/")
-async def get():
-    return FileResponse("web/index.html")
+# @app.websocket("/ws")
+# async def ws_endpoint(websocket: WebSocket):
+#     global dr, pg, stt, tts
+#
+#     await websocket.accept()
+#     logging.info("connection established")
+#
+#     try:
+#         cm = ClientManager()
+#         session_id = cm.create_session()
+#
+#         while True:
+#             message = await websocket.receive()
+#             logging.info("received data from client")
+#
+#             # if bytes received add to input audio buffer
+#             if "bytes" in message:
+#                 audio_data = message["bytes"]
+#                 logging.info(f"received audio data: {len(audio_data)}")
+#                 cm.sessions[session_id]["input_audio_buffer"] = audio_data
+#             elif "text" in message:
+#                 data = json.loads(message["text"])
+#
+#                 if data["action"] == "submit_prompt":
+#                     talking_points = await dr.generate_report(
+#                         data["inputPrompt"], cm.sessions[session_id]
+#                     )
+#
+#                     # adds podscript to client manager -> cm.sessions[session_id]["podscript_script"]
+#                     await pg.podgen(
+#                         cm.sessions[session_id],
+#                         talking_points,
+#                         data["tone"],
+#                     )
+#
+#                     await tts.generate_speech(
+#                         websocket,
+#                         cm.sessions[session_id],
+#                         cm.sessions[session_id]["podscript_script"],
+#                     )
+#
+#                 elif data["action"] == "init_recording":
+#                     print("init recording")
+#                     init_text = (
+#                         "Host2: oh, I think our human wants to ask something here"
+#                     )
+#                     # send audio
+#                     await tts.generate_speech(
+#                         websocket, cm.sessions[session_id], init_text
+#                     )
+#                     await websocket.send_json({"action": "begin_mic_recording"})
+#                 elif data["action"] == "stop_recording":
+#                     # transcribe audio data here
+#                     print("transcribing data")
+#
+#             # else process text commands
+#     except Exception as e:
+#         logging.error(f"error in ws endpoint: {str(e)}")
 
 
 @app.websocket("/ws")
-async def ws_endpoint(websocket: WebSocket):
-    global dr, pg, stt, tts
-
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    logging.info("connection established")
-
     try:
-        cm = ClientManager()
-        session_id = cm.create_session()
-
         while True:
             message = await websocket.receive()
-            logging.info("received data from client")
-
-            # if bytes received add to input audio buffer
             if "bytes" in message:
                 audio_data = message["bytes"]
-                logging.info(f"received audio data: {len(audio_data)}")
-                cm.sessions[session_id]["input_audio_buffer"] = audio_data
+                audio_io = BytesIO(audio_data)
+                transcription = stt.transcribe_webm(audio_io)
+
+                # generate with last and next sentence -> qwen -> send sentence back to client
+                # send interrupt_transcript with audio streaming from the text
             elif "text" in message:
                 data = json.loads(message["text"])
 
-                if data["action"] == "submit_prompt":
-                    talking_points = await dr.generate_report(
-                        data["inputPrompt"], cm.sessions[session_id]
+                if data.get("action") == "submit_prompt":
+                    await websocket.send_json(
+                        {"action": "convo_transcript", "transcript": podcast_script}
                     )
-
-                    # adds podscript to client manager -> cm.sessions[session_id]["podscript_script"]
-                    await pg.podgen(
-                        cm.sessions[session_id],
-                        talking_points,
-                        data["tone"],
-                    )
-
-                    await tts.generate_speech(
-                        websocket,
-                        cm.sessions[session_id],
-                        cm.sessions[session_id]["podscript_script"],
-                    )
-
-                elif data["action"] == "init_recording":
-                    print("init recording")
-                    init_text = (
-                        "Host2: oh, I think our human wants to ask something here"
-                    )
-                    # send audio
-                    await tts.generate_speech(
-                        websocket, cm.sessions[session_id], init_text
-                    )
-                    await websocket.send_json({"action": "begin_mic_recording"})
-                elif data["action"] == "stop_recording":
-                    # transcribe audio data here
-                    print("transcribing data")
-
-            # else process text commands
+                    # # Convert text to speech
+                    # tts = gTTS(text=data.get("prompt"), lang="en")
+                    #
+                    # # Save to bytes buffer
+                    # audio_buffer = io.BytesIO()
+                    # tts.write_to_fp(audio_buffer)
+                    # audio_buffer.seek(0)
+                    #
+                    # # Send audio bytes back to client
+                    # await websocket.send_bytes(audio_buffer.read())
+                elif data.get("action") == "init_audio_data":
+                    last_sentence = data.get("last_sentence")
+                    next_sentence = data.get("next_Sentence")
     except Exception as e:
-        logging.error(f"error in ws endpoint: {str(e)}")
+        print(f"Error: {e}")
+    finally:
+        await websocket.close()
 
 
 if __name__ == "__main__":
