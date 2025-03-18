@@ -96,11 +96,25 @@ async def ws_endpoint(websocket: WebSocket):
                 cm.sessions[session_id]["input_audio_buffer"] = audio_data
             elif "text" in message:
                 data = json.loads(message["text"])
-                print(f"data {data}")
 
                 if data["action"] == "submit_prompt":
-                    # search -> scrape -> deep-research -> talking_points -> podcast_script_gen -> text to speech
-                    pass
+                    talking_points = await dr.generate_report(
+                        data["inputPrompt"], cm.sessions[session_id]
+                    )
+
+                    # adds podscript to client manager -> cm.sessions[session_id]["podscript_script"]
+                    await pg.podgen(
+                        cm.sessions[session_id],
+                        talking_points,
+                        data["tone"],
+                    )
+
+                    await tts.generate_speech(
+                        websocket,
+                        cm.sessions[session_id],
+                        cm.sessions[session_id]["podscript_script"],
+                    )
+
                 elif data["action"] == "init_recording":
                     print("init recording")
                     init_text = (

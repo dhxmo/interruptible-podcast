@@ -21,7 +21,6 @@ class PodGenStandard:
     async def podgen(
         self,
         session: Dict[str, Any],
-        running_summary: str,
         talking_points: str,
         convo_tone: str,
     ):
@@ -29,7 +28,7 @@ class PodGenStandard:
             [
                 SystemMessage(
                     content=podgen_instruction.format(
-                        running_summary=running_summary,
+                        running_summary=session["running_summary"],
                         conversation_style=convo_tone,
                         output_language="ENGLISH",
                         roles_person1=Config.roles_person1,

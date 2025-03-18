@@ -195,7 +195,6 @@ If you need more detailed information or specific references, feel free to ask!
 
         await self.pg.podgen(
             self.cm.sessions[self.session_id],
-            running_summary,
             talking_points,
             conversational_tone,
         )
