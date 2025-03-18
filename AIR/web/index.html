@@ -1,482 +1,489 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<!-- UI TODO:
+  <!-- UI TODO:
 1. spinner on processing
 2. button text change on record/stop
 
 -->
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-		<title>AIR</title>
-		<link rel="icon" type="image/x-icon" href="web/favicon.ico" />
-		<script src="web/dist/recorder.min.js" type="text/javascript"></script>
-		<style>
-			body {
-				display: flex;
-				justify-content: center;
-				align-items: center;
-				height: 100vh;
-				background-color: #f4f4f4;
-				font-family:
-					-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-					"Helvetica Neue", Arial, sans-serif;
-			}
-			.container {
-				background: white;
-				height: window.innerHeight;
-				padding: 20px;
-				border-radius: 12px;
-				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-				text-align: center;
-				display: flex;
-				flex-direction: column;
-			}
-			.row {
-				display: flex;
-				flex: 1; /*each row takes equal height */
-				justify-content: center;
-				align-items: center;
-				margin: 10px;
-			}
-			.row2 {
-				height: 150px;
-			}
-			input,
-			select {
-				padding: 12px;
-				font-size: 16px;
-				border-radius: 8px;
-				border: 1px solid #ddd;
-				outline: none;
-				transition: border-color 0.2s ease-in-out;
-			}
-			input:focus,
-			select:focus {
-				border-color: #007aff;
-			}
-			button {
-				cursor: pointer;
-				background-color: #f8f8f8;
-				color: #333;
-				border: 1px solid #ccc;
-				padding: 12px 20px;
-				font-size: 16px;
-				border-radius: 8px;
-				transition: all 0.2s ease-in-out;
-				font-weight: 500;
-			}
-			button:hover {
-				background-color: #e6e6e6;
-			}
-			button.interrupt {
-				background-color: #f8f8f8;
-				color: #333;
-			}
-			button.interrupt:hover {
-				background-color: #e6e6e6;
-			}
+    <title>AIR</title>
+    <link rel="icon" type="image/x-icon" href="web/favicon.ico" />
+    <script src="web/dist/recorder.min.js" type="text/javascript"></script>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+      .container {
+        background: white;
+        height: window.innerHeight;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+      }
+      .row {
+        display: flex;
+        flex: 1; /*each row takes equal height */
+        justify-content: center;
+        align-items: center;
+        margin: 10px;
+      }
+      .row2 {
+        height: 150px;
+      }
+      input,
+      select {
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        outline: none;
+        transition: border-color 0.2s ease-in-out;
+      }
+      input:focus,
+      select:focus {
+        border-color: #007aff;
+      }
+      button {
+        cursor: pointer;
+        background-color: #f8f8f8;
+        color: #333;
+        border: 1px solid #ccc;
+        padding: 12px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        transition: all 0.2s ease-in-out;
+        font-weight: 500;
+      }
+      button:hover {
+        background-color: #e6e6e6;
+      }
+      button.interrupt {
+        background-color: #f8f8f8;
+        color: #333;
+      }
+      button.interrupt:hover {
+        background-color: #e6e6e6;
+      }
 
-			#status {
-				margin-top: 4rem;
-				font-weight: bold;
-			}
+      #status {
+        margin-top: 4rem;
+        font-weight: bold;
+      }
 
-			#info {
-				font-size: 7px;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="container">
-			<div class="row row1">
-				<input
-					type="text"
-					placeholder="What do you wanna talk about?"
-					id="inputPrompt"
-				/>
-				<select id="selectTone">
-					<option value="">Select a tone</option>
-					<option value="news">News-like</option>
-					<option value="historical">Historical</option>
-					<option value="scientific">Scientific</option>
-					<option value="explainer">Explainer</option>
-					<option value="opinionated">Opinionated</option>
-					<option value="dramatic">Dramatic</option>
-					<option value="memoir">Memoir</option>
-					<option value="meditative">Meditative</option>
-					<option value="philosophical">Philosophical</option>
-					<option value="tech&futurism">Tech & Futurism</option>
-				</select>
-			</div>
-			<div class="row row2">
-				<button id="btnSubmit">Submit</button>
-			</div>
-			<div class="row row3">
-				<canvas id="waveCanvas"></canvas>
-			</div>
-			<div class="row row4">
-				<button id="btnInterrupt">Interrupt</button>
-			</div>
-			<div class="row row5">
-				<span id="info">long press to record</span>
-			</div>
-			<p id="status"></p>
-		</div>
+      #info {
+        font-size: 7px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row row1">
+        <input
+          type="text"
+          placeholder="What do you wanna talk about?"
+          id="inputPrompt"
+        />
+        <select id="selectTone">
+          <option value="">Select a tone</option>
+          <option value="news">News-like</option>
+          <option value="historical">Historical</option>
+          <option value="scientific">Scientific</option>
+          <option value="explainer">Explainer</option>
+          <option value="opinionated">Opinionated</option>
+          <option value="dramatic">Dramatic</option>
+          <option value="memoir">Memoir</option>
+          <option value="meditative">Meditative</option>
+          <option value="philosophical">Philosophical</option>
+          <option value="tech&futurism">Tech & Futurism</option>
+        </select>
+      </div>
+      <div class="row row2">
+        <button id="btnSubmit">Submit</button>
+      </div>
+      <div class="row row3">
+        <canvas id="waveCanvas"></canvas>
+      </div>
+      <div class="row row4">
+        <button id="btnInterrupt">Interrupt</button>
+      </div>
+      <div class="row row5">
+        <span id="info">long press to record</span>
+      </div>
+      <p id="status"></p>
+    </div>
 
-		<script>
-			// network
-			let socket = null;
+    <script>
+      // network
+      let socket = null;
 
-			// audio
-			let recorder;
-			let isRecording = false;
+      // audio
+      let recorder;
+      let isRecording = false;
 
-			// playback
-			let isProcessing = false;
-			let audioQueue = [];
-			let isPlaying = false;
+      // playback
+      let isProcessing = false;
+      let audioQueue = [];
+      let isPlaying = false;
+      // match server generation settings
+      const sampleRate = 22050;
+      const channels = 1;
+      const bitDepth = 16;
+      let audioContext = new (window.AudioContext || window.webkitAudioContext)(
+        {
+          sampleRate: sampleRate,
+        }
+      );
+      let nextTime = 0; // For seamless playback timing
 
-			const textStatus = document.getElementById("status");
-			const btnSubmit = document.getElementById("btnSubmit");
-			const btnInterrupt = document.getElementById("btnInterrupt");
+      const textStatus = document.getElementById("status");
+      const btnSubmit = document.getElementById("btnSubmit");
+      const btnInterrupt = document.getElementById("btnInterrupt");
 
-			// ------------ canvas animation
-			const canvas = document.getElementById("waveCanvas");
-			const ctx = canvas.getContext("2d");
-			canvas.width = 450;
-			canvas.height = 250;
+      // ------------ canvas animation
+      const canvas = document.getElementById("waveCanvas");
+      const ctx = canvas.getContext("2d");
+      canvas.width = 450;
+      canvas.height = 250;
 
-			const centerX = canvas.width / 2;
-			const centerY = canvas.height / 2;
-			const circleRadius = 30;
-			const waveRadius = circleRadius + 10;
-			let angleOffset = 0;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const circleRadius = 30;
+      const waveRadius = circleRadius + 10;
+      let angleOffset = 0;
 
-			// Array to store wave objects
-			const waves = [];
-			const maxWaveRadius = 100; // Maximum radius before wave fades out completely
-			const waveSpeed = 1; // Speed of wave expansion
+      // Array to store wave objects
+      const waves = [];
+      const maxWaveRadius = 100; // Maximum radius before wave fades out completely
+      const waveSpeed = 1; // Speed of wave expansion
 
-			function createWave() {
-				return {
-					radius: circleRadius, // Start at the edge of the circle
-					opacity: 1, // Start fully opaque
-					angleOffset: Math.random() * 360, // Random starting angle for variety
-				};
-			}
+      function createWave() {
+        return {
+          radius: circleRadius, // Start at the edge of the circle
+          opacity: 1, // Start fully opaque
+          angleOffset: Math.random() * 360, // Random starting angle for variety
+        };
+      }
 
-			// Add initial waves (optional)
-			for (let i = 0; i < 3; i++) {
-				waves.push(createWave());
-			}
+      // Add initial waves (optional)
+      for (let i = 0; i < 3; i++) {
+        waves.push(createWave());
+      }
 
-			function draw() {
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-				// Draw static white center circle
-				ctx.beginPath();
-				ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
-				ctx.fillStyle = "white";
-				ctx.fill();
-				ctx.closePath();
+        // Draw static white center circle
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        ctx.closePath();
 
-				if (!isProcessing && isPlaying) {
-					// Add new wave periodically
-					if (Math.random() < 0.1) {
-						// 10% chance each frame
-						waves.push(createWave());
-					}
+        if (!isProcessing && isPlaying) {
+          // Add new wave periodically
+          if (Math.random() < 0.1) {
+            // 10% chance each frame
+            waves.push(createWave());
+          }
 
-					// Draw and update waves
-					for (let i = waves.length - 1; i >= 0; i--) {
-						const wave = waves[i];
-						wave.radius += waveSpeed; // Expand wave
-						wave.opacity =
-							1 - (wave.radius - circleRadius) / (maxWaveRadius - circleRadius); // Fade out
+          // Draw and update waves
+          for (let i = waves.length - 1; i >= 0; i--) {
+            const wave = waves[i];
+            wave.radius += waveSpeed; // Expand wave
+            wave.opacity =
+              1 - (wave.radius - circleRadius) / (maxWaveRadius - circleRadius); // Fade out
 
-						if (wave.opacity <= 0) {
-							waves.splice(i, 1); // Remove faded waves
-							continue;
-						}
+            if (wave.opacity <= 0) {
+              waves.splice(i, 1); // Remove faded waves
+              continue;
+            }
 
-						ctx.beginPath();
-						for (let angle = 0; angle <= 360; angle += 5) {
-							let rad = (angle + wave.angleOffset) * (Math.PI / 180);
-							// Simulate audio wave with multiple sine components
-							let waveHeight = (Math.sin(rad * 5) + Math.sin(rad * 3)) * 15;
-							let x = centerX + (wave.radius + waveHeight) * Math.cos(rad);
-							let y = centerY + (wave.radius + waveHeight) * Math.sin(rad);
-							if (angle === 0) {
-								ctx.moveTo(x, y);
-							} else {
-								ctx.lineTo(x, y);
-							}
-						}
-						ctx.closePath();
-						ctx.strokeStyle = `rgba(0, 0, 0, ${wave.opacity})`; // Black with fading opacity
-						ctx.lineWidth = 2;
-						ctx.stroke();
+            ctx.beginPath();
+            for (let angle = 0; angle <= 360; angle += 5) {
+              let rad = (angle + wave.angleOffset) * (Math.PI / 180);
+              // Simulate audio wave with multiple sine components
+              let waveHeight = (Math.sin(rad * 5) + Math.sin(rad * 3)) * 15;
+              let x = centerX + (wave.radius + waveHeight) * Math.cos(rad);
+              let y = centerY + (wave.radius + waveHeight) * Math.sin(rad);
+              if (angle === 0) {
+                ctx.moveTo(x, y);
+              } else {
+                ctx.lineTo(x, y);
+              }
+            }
+            ctx.closePath();
+            ctx.strokeStyle = `rgba(0, 0, 0, ${wave.opacity})`; // Black with fading opacity
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-						wave.angleOffset += 2; // Animate the wave pattern
-					}
-				}
+            wave.angleOffset += 2; // Animate the wave pattern
+          }
+        }
 
-				requestAnimationFrame(draw);
-			}
+        requestAnimationFrame(draw);
+      }
 
-			// -- prompt related
-			async function submitPrompt() {
-				const inputPrompt = document.getElementById("inputPrompt").value;
-				const selectTone = document.getElementById("selectTone").value;
+      // -- prompt related
+      async function submitPrompt() {
+        const inputPrompt = document.getElementById("inputPrompt").value;
+        const selectTone = document.getElementById("selectTone").value;
 
-				try {
-					if (!inputPrompt || !selectTone) {
-						alert("Error: Please fill what you wanna talk about");
-						return;
-					}
-					const data = JSON.stringify({
-						inputPrompt: inputPrompt,
-						tone: selectTone,
-					});
+        try {
+          if (!inputPrompt || !selectTone) {
+            alert("Error: Please fill what you wanna talk about");
+            return;
+          }
+          const data = JSON.stringify({
+            action: "submit_prompt",
+            inputPrompt: inputPrompt,
+            tone: selectTone,
+          });
 
-					if (socket.readyState === WebSocket.OPEN) {
-						socket.send(data);
-						// podcast research and script is being generated. TODO: show spinner
-						isProcessing = true;
-					}
-				} catch (err) {
-					textStatus.textContent =
-						"Could not connect to WebSocket or access mic. Aborted.";
-					console.error("Error submitting prompt", err.message);
-				}
-			}
+          if (socket.readyState === WebSocket.OPEN) {
+            socket.send(data);
+            // podcast research and script is being generated. TODO: show spinner
+            isProcessing = true;
+          }
+        } catch (err) {
+          textStatus.textContent =
+            "Could not connect to WebSocket or access mic. Aborted.";
+          console.error("Error submitting prompt", err.message);
+        }
+      }
 
-			btnSubmit.addEventListener("click", submitPrompt);
+      btnSubmit.addEventListener("click", submitPrompt);
 
-			// --- playback related
-			function startRecording() {
-				if (!isRecording) {
-					isRecording = true;
-					recorder.start();
-				}
-			}
+      // --- playback related
+      function initAudioContext() {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: sampleRate,
+        });
+        nextTime = audioContext.currentTime; // Initialize playback time
+      }
 
-			async function stopRecording() {
-				if (isRecording) {
-					isRecording = false;
+      async function playQueue() {
+        while (audioQueue.length > 0 && isPlaying) {
+          const pcmData = audioQueue.shift();
+          try {
+            const sampleCount = pcmData.length; // Int16Array length is in samples
+            const audioBuffer = audioContext.createBuffer(
+              channels,
+              sampleCount,
+              sampleRate
+            );
 
-					try {
-						await recorder.stop();
+            // Convert Int16 PCM to Float32
+            const channelData = audioBuffer.getChannelData(0);
+            for (let i = 0; i < sampleCount; i++) {
+              channelData[i] = pcmData[i] / 32768; // Normalize -32768 to 32767 to -1 to 1
+            }
 
-						// check socket conn and send msg out
-						if (!socket || socket.readyState !== WebSocket.OPEN) {
-							console.log("socket closed. reopening...");
-							try {
-								await initializeWebsocketAsync();
-							} catch (err) {
-								console.error("Error connecting websockets", err.message);
-								return;
-							}
-						}
-						const stopMessage = JSON.stringify({
-							action: "stop_recording",
-						});
-						socket.send(stopMessage);
-					} catch (err) {
-						console.error("error stopping recording", err.message);
-					}
-				}
-			}
-			btnInterrupt.addEventListener("mousedown", startRecording);
-			btnInterrupt.addEventListener("mouseup", stopRecording);
+            const source = audioContext.createBufferSource();
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
 
-			// mobile
-			btnInterrupt.addEventListener("touchstart", (e) => {
-				e.preventDefault();
-				startRecording;
-			});
-			btnInterrupt.addEventListener("touchend", (e) => {
-				e.preventDefault();
-				startRecording;
-			});
+            // Schedule playback seamlessly
+            if (nextTime < audioContext.currentTime) {
+              nextTime = audioContext.currentTime; // Catch up if we're behind
+            }
+            source.start(nextTime);
+            nextTime += audioBuffer.duration; // Schedule next chunk
 
-			let audioContext = new (window.AudioContext || window.webkitAudioContext)(
-				{
-					sampleRate: 16000,
-				}
-			);
+            await new Promise((resolve) => (source.onended = resolve));
+          } catch (e) {
+            console.error("Error playing audio:", e);
+          }
+        }
+        isPlaying = audioQueue.length > 0;
+      }
 
-			async function initSourceNode() {
-				try {
-					// GUM and pipe to media source node
-					const stream = await navigator.mediaDevices.getUserMedia({
-						audio: true,
-					});
-					return audioContext.createMediaStreamSource(stream);
-				} catch (err) {
-					btnInterrupt.style.display = "None";
-					let audioContext = new (window.AudioContext ||
-						window.webkitAudioContext)({ sampleRate: 16000 });
-					const stream = await navigator.mediaDevices.getUserMedia({
-						audio: true,
-					});
-					return audioContext.createMediaStreamSource(stream);
-				}
-			}
+      // --- recording related
+      async function initRecording() {
+        if (!isRecording) {
+          const initRecording = JSON.stringify({ action: "init_recording" });
+          if (socket.readyState === WebSocket.OPEN) socket.send(initRecording);
+          btnInterrupt.textContent = "recording...";
+        } else {
+          try {
+            await recorder.stop();
 
-			// https://github.com/mmig/opus-encdec?tab=readme-ov-file#general-config-options
-			async function initializeRecorder() {
-				// source node
-				const sourceNode = await initSourceNode();
+            isRecording = false;
+            btnInterrupt.textContent = "Interrupt";
 
-				// add config to recorder
-				const config = {
-					numberOfChannels: 1,
-					encoderSampleRate: 16000,
-					encoderFrameSize: 20,
-					maxFramesPerPage: 40,
-					encoderComplexity: 6,
-					encoderApplication: 2048,
-					originalSampleRate: 16000,
-					streamPages: true,
-					sourceNode: sourceNode,
-				};
+            // check socket conn and send msg out
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+              console.log("socket closed. reopening...");
+              try {
+                await initializeWebsocketAsync();
+              } catch (err) {
+                console.error("Error connecting websockets", err.message);
+                return;
+              }
+            }
+            const stopMessage = JSON.stringify({
+              action: "stop_recording",
+            });
+            socket.send(stopMessage);
+          } catch (err) {
+            console.error("error stopping recording", err.message);
+          }
+        }
+      }
 
-				recorder = new Recorder(config);
+      async function initSourceNode() {
+        try {
+          // GUM and pipe to media source node
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          return audioContext.createMediaStreamSource(stream);
+        } catch (err) {
+          btnInterrupt.style.display = "None";
+          let audioContext = new (window.AudioContext ||
+            window.webkitAudioContext)({ sampleRate: 16000 });
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+          });
+          return audioContext.createMediaStreamSource(stream);
+        }
+      }
 
-				// recorder onstart, ondataavailable, onstop
-				recorder.onstart = () => {
-					textStatus.textContent = "Recording...";
-				};
+      async function initializeRecorder() {
+        // https://github.com/mmig/opus-encdec?tab=readme-ov-file#general-config-options
+        // source node
+        const sourceNode = await initSourceNode();
 
-				let audioChunks = [];
+        // add config to recorder
+        const config = {
+          numberOfChannels: 1,
+          encoderSampleRate: 16000,
+          encoderFrameSize: 20,
+          maxFramesPerPage: 40,
+          encoderComplexity: 6,
+          encoderApplication: 2048,
+          originalSampleRate: 16000,
+          streamPages: true,
+          sourceNode: sourceNode,
+        };
 
-				recorder.ondataavailable = (buffer) => {
-					audioChunks.push(buffer);
-				};
+        recorder = new Recorder(config);
 
-				recorder.onstop = () => {
-					// create blob from buffer chunks
-					const blob = new Blob(audioChunks, {
-						type: "audio/ogg; codecs=opus",
-					});
+        // recorder onstart, ondataavailable, onstop
+        recorder.onstart = () => {};
 
-					// clear chunk for next recording
-					audioChunks = [];
+        let audioChunks = [];
 
-					// send via socket to server
-					if (socket && socket.readyState === WebSocket.OPEN) {
-						console.log("ws sending", blob.size);
-						socket.send(blob);
-					} else {
-						console.error("socket not open. error sending audio");
-					}
-				};
-			}
+        recorder.ondataavailable = (buffer) => {
+          audioChunks.push(buffer);
+        };
 
-			// [HACK] buffer should be queue
-			function playAudioFromQ() {
-				if (audioQueue.length === 0 || isPlaying) {
-					return;
-				}
+        recorder.onstop = () => {
+          // create blob from buffer chunks
+          const blob = new Blob(audioChunks, {
+            type: "audio/ogg; codecs=opus",
+          });
 
-				// if first time podcast generation, set false and disappear spinner
-				if (isProcessing) isProcessing = false;
+          // clear chunk for next recording
+          audioChunks = [];
 
-				isPlaying = true;
-				const currentBlob = audioQueue.shift();
-				const audio = new Audio(URL.createObjectURL(currentBlob));
+          // send via socket to server
+          if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log("ws sending", blob.size);
+            socket.send(blob);
+          } else {
+            console.error("socket not open. error sending audio");
+          }
+        };
+      }
 
-				// -----------
-				audio.onerror = (error) => {
-					console.error("error in playback", error.mesage);
-					isPlaying = false;
-					playAudioFromQ();
-				};
+      btnInterrupt.addEventListener("click", initRecording);
 
-				// if blob done playing, play the next one
-				audio.onended = () => {
-					isPlaying = false;
-					playAudioFromQ();
-				};
-				// -----------
+      // -- onload init
+      async function initializeWebsocketAsync() {
+        return new Promise((resolve, reject) => {
+          // extract ws from url
+          let currentURL = window.location;
+          let wsProtocol = currentURL.protocol === "https" ? "wss:" : "ws:";
+          let wsURL = `${wsProtocol}//${currentURL.host}/ws`;
+          socket = new WebSocket(wsURL);
 
-				audio.play().catch((error) => {
-					console.error("error in playback", error.mesage);
-					isPlaying = false;
-					playAudioFromQ();
-				});
-			}
+          if (!audioContext) initAudioContext();
 
-			function qAudioPlayback(blob) {
-				audioQueue.push(blob);
-				playAudioFromQ();
-			}
+          // -----------
+          socket.onopen = () => {
+            console.log("websocket connected");
+            textStatus.textContent = "Ready";
+            btnInterrupt.disabled = false;
+          };
+          socket.onclose = (event) => {
+            console.log("websocket closed", event.code, event.reason);
+            textStatus.textContent = "Disconnected";
+            btnInterrupt.disabled = true;
+            reject(new Error("websocket closed"));
+          };
+          socket.onerror = (error) => {
+            console.log("websocket error", error.message);
+            textStatus.textContent = "Error";
+            btnInterrupt.disabled = true;
+            reject(error);
+          };
+          socket.onmessage = async (event) => {
+            console.log(`Received message from server: ${typeof event.data}`);
+            if (event.data instanceof Blob) {
+              //   qAudioPlayback(event.data);
 
-			// -- onload init
-			async function initializeWebsocketAsync() {
-				return new Promise((resolve, reject) => {
-					// extract ws from url
-					let currentURL = window.location;
-					let wsProtocol = currentURL.protocol === "https" ? "wss:" : "ws:";
-					let wsURL = `${wsProtocol}//${currentURL.host}/ws`;
-					socket = new WebSocket(wsURL);
+              const buffer = await event.data.arrayBuffer();
+              const pcmData = new Int16Array(buffer); // 16-bit signed PCM
+              audioQueue.push(pcmData);
 
-					// -----------
-					socket.onopen = () => {
-						console.log("websocket conected");
-						textStatus.textContent = "Ready";
-						btnInterrupt.disabled = false;
-					};
-					socket.onclose = (event) => {
-						console.log("websocket closed", event.code, event.reason);
-						textStatus.textContent = "Disconnected";
-						btnInterrupt.disabled = true;
-						reject(new Error("websocket closed"));
-					};
-					socket.onerror = (error) => {
-						console.log("websocket error", error.message);
-						textStatus.textContent = "Error";
-						btnInterrupt.disabled = true;
-						reject(error);
-					};
-					socket.onmessage = (event) => {
-						if (event.data instanceof Blob) {
-							// handle audio data from the server. queue and playback
-							qAudioPlayback(event.data);
-						} else {
-							try {
-								const message = JSON.parse(event.data);
+              // Start playing if not already playing
+              if (!isPlaying) {
+                isPlaying = true;
+                playQueue();
+              }
+            } else {
+              try {
+                const message = JSON.parse(event.data);
 
-								if (message.type === "error") {
-									console.error("error in server", message.message);
-									textStatus.textContent = "Server Error";
-								}
-							} catch (err) {
-								console.error("error reading websocket data", err.message);
-							}
-						}
-					};
-					// -----------
-				});
-			}
+                if (message.action === "error") {
+                  console.error("error in server", message.message);
+                  textStatus.textContent = "Server Error";
+                } else if (message.action === "begin_mic_recording") {
+                  isRecording = true;
+                  recorder.start();
+                }
+              } catch (err) {
+                console.error("error reading websocket data", err.message);
+              }
+            }
+          };
+          // -----------
+        });
+      }
 
-			window.onload = async () => {
-				draw();
+      window.onload = async () => {
+        draw();
 
-				// initialize recorder
-				await initializeRecorder();
-				await recorder.initialize;
-
-				try {
-					await initializeWebsocketAsync();
-					console.log("initialized");
-				} catch (err) {
-					console.error("error connecting websocket:", err.message);
-				}
-			};
-		</script>
-	</body>
+        await initializeRecorder();
+        await recorder.initialize;
+        try {
+          await initializeWebsocketAsync();
+        } catch (err) {
+          console.error("error connecting websocket:", err.message);
+        }
+      };
+    </script>
+  </body>
 </html>

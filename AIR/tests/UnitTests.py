@@ -208,19 +208,6 @@ If you need more detailed information or specific references, feel free to ask!
     def test_tts(self):
         self.tts.generate_speech(self.cm.sessions[self.session_id], podcast_script)
 
-    # TODO: --- split on sentences and implement human interrupt
-    def test_queue_fetch_interrupt_contextual_update_in_queue(self):
-        # simulate interrupt with a keydown and implement logic
-        pass
-
-    # --- TODO: total --> do this with the UI. NOT HERE.
-    def test_stream_podcast_script_2_tts_2_client(self):
-        pass
-
-    def test_process_interruption_and_stream_contextual_response_back(self):
-        # use running summary + embed for session vector db to respond and continue convo
-        pass
-
 
 if __name__ == "__main__":
     unittest.main()

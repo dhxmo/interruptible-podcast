@@ -5,7 +5,7 @@ from faster_whisper import WhisperModel
 import torch
 from numpy import ndarray
 
-from AIR.src.config import Config
+from src.config import Config
 
 
 class FasterWhisperEngine:

@@ -1,13 +1,13 @@
 import logging
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_ollama import ChatOllama
 
-from AIR.src.config import Config
-from AIR.src.pod_gen.clean import ContentCleanerMixin
-from AIR.src.pod_gen.pg_templates import podgen_instruction, user_instruction
+from src.config import Config
+from src.pod_gen.clean import ContentCleanerMixin
+from src.pod_gen.pg_templates import podgen_instruction, user_instruction
 
 
 class PodGenStandard:
