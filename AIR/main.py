@@ -49,16 +49,6 @@ args = parser.parse_args()
 
 
 # -------------------------
-# Load demo HTML for the root endpoint
-# with open("web/index.html", "r", encoding="utf-8") as f:
-#     html = f.read()
-#
-#
-# @app.get("/")
-# async def get():
-#     return FileResponse("web/index.html")
-
-
 # @app.websocket("/ws")
 # async def ws_endpoint(websocket: WebSocket):
 #     global dr, pg, stt, tts
@@ -119,11 +109,12 @@ args = parser.parse_args()
 #         logging.error(f"error in ws endpoint: {str(e)}")
 
 sentenceIndex = 0
+nextSentence = ""
 
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    global sentenceIndex
+    global sentenceIndex, nextSentence, tts
 
     await websocket.accept()
     try:
@@ -135,38 +126,16 @@ async def websocket_endpoint(websocket: WebSocket):
                 audio_io = BytesIO(audio_data)
                 transcription = stt.transcribe_webm(audio_io)
 
-                # generate with last and next sentence -> qwen -> send sentence back to client
-                # send interrupt_transcript with audio streaming from the text
+                # TODO: generate with transcript + nextSentence -> qwen -> interrupt_transcript
                 interruption_text = "this is me handling the interruption"
-                tts = gTTS(text=interruption_text, lang="en")
 
-                # Save to bytes buffer
-                audio_buffer = io.BytesIO()
-                tts.write_to_fp(audio_buffer)
-                audio_buffer.seek(0)
-
-                # Send audio bytes back to client
-                # await websocket.send_bytes(audio_buffer.read())
-
-                # Convert binary data to base64 for JSON transmission
-                audio_base64 = base64.b64encode(audio_buffer.read()).decode("utf-8")
-
-                # Create a structured JSON response
-                response = {
-                    "action": "tts_response",
-                    "sentenceIndex": sentenceIndex,
-                    "audio": audio_base64,
-                }
-
-                # Send JSON response
-                print("sending response")
-                await websocket.send_json(response)
+                await tts.stream_response(websocket, "Host2", interruption_text)
             elif "text" in message:
                 data = json.loads(message["text"])
 
                 # user prompt parse
                 if data.get("action") == "submit_prompt":
-                    # generate conversation here
+                    # TODO: generate conversation here
 
                     # send script back to client
                     await websocket.send_json(
@@ -176,47 +145,17 @@ async def websocket_endpoint(websocket: WebSocket):
                 elif data.get("action") == "tts":
                     host = data.get("host")
                     dialogue = data.get("dialogue")
-                    sentence_index = data.get("sentenceIndex")
-                    sentenceIndex = data.get("sentenceIndex")
-
-                    print("tts init", host, dialogue, sentence_index)
 
                     try:
-                        tts = gTTS(text=dialogue, lang="en")
-
-                        # Save to bytes buffer
-                        audio_buffer = io.BytesIO()
-                        tts.write_to_fp(audio_buffer)
-                        audio_buffer.seek(0)
-
-                        # Send audio bytes back to client
-                        # await websocket.end_bytes(audio_buffer.read())
-
-                        # binary audio data
-                        audio_bytes = audio_buffer.read()
-                        # Convert binary data to base64 for JSON transmission
-                        audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
-
-                        # Create a structured JSON response
-                        response = {
-                            "action": "tts_response",
-                            "sentenceIndex": sentence_index,
-                            "audio": audio_base64,
-                        }
-
-                        # Send JSON response
-                        print("sending response")
-                        await websocket.send_json(response)
+                        await tts.stream_response(websocket, host, dialogue)
                     except Exception as e:
                         error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)
 
                 # handle interruption
                 elif data.get("action") == "init_interruption":
-                    next_sentence = data.get("next_sentence")
+                    nextSentence = data.get("next_sentence")
 
-                    # generate with qwen response with RAG
-                    # flowing the conversation into the next sentence
     except Exception as e:
         print(f"Error: {e}")
     finally:

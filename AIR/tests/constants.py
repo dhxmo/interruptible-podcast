@@ -1,7 +1,7 @@
 podcast_script = """
     Host1: Alright, let's dive into this fascinating world of quantum computing! 
 Host2: Yeah, absolutely! I’ve been really excited about the progress too.
-Host1: Oh, right! Non-Abelian anyons are at the heart of topological quantum computing because they’re much more stable against decoherence. .
+Host1: Oh, right! Non-Abelian anyons are at the heart of topological quantum computing because they’re much more stable against decoherence.
 Host2: Exactly! I remember reading that these particles can potentially form the basis for robust qubits, which would make large-scale quantum computers feasible. 
 Host1: Yeah, and then there’s the matter of quantum sensing and communication. 
 Host2: Yes, definitely! Enhanced quantum sensors could lead to breakthroughs in detecting minute changes, which is crucial for fields such as geothermal energy exploration or gravitational wave detection. 

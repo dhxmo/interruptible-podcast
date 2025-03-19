@@ -55,14 +55,15 @@ function App() {
         const audioBlob = new Blob([bytes], { type: "audio/mp3" });
 
         // Add to queue with correct index
-        setAudioQueue((prevQueue) =>
-          [
+        setAudioQueue(
+          (prevQueue) => [
             ...prevQueue,
             {
               blob: audioBlob,
-              sentenceIndex: message.sentenceIndex,
+              // sentenceIndex: message.sentenceIndex,
             },
-          ].sort((a, b) => a.sentenceIndex - b.sentenceIndex)
+          ]
+          // .sort((a, b) => a.sentenceIndex - b.sentenceIndex)
         ); // Keep queue ordered
       } else if (message.action === "error") {
         console.error("TTS server error:", message.message);
@@ -246,10 +247,10 @@ function App() {
             audioRef.current = null; // Clear the reference
 
             // If this was the last sentence, end playback
-            if (audioItem.sentenceIndex === dialogues.length - 1) {
-              console.log("All dialogues have been played.");
-              setStartPlayback(false);
-            }
+            // if (audioItem.sentenceIndex === dialogues.length - 1) {
+            // console.log("All dialogues have been played.");
+            // setStartPlayback(false);
+            // }
 
             // if handling interruption -> play interruption audio
             // else play next in line
@@ -310,8 +311,8 @@ function App() {
           socketRef.current.send(
             JSON.stringify({
               action: "tts",
-              host: "host1",
-              dialogue: "Hey, whatsup ? Whats on your mind?",
+              host: "Host1",
+              dialogue: "Whats on your mind?",
             })
           );
         }

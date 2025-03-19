@@ -1,3 +1,5 @@
+import base64
+import io
 import logging
 from typing import Dict, Any
 
@@ -38,23 +40,33 @@ class SpeechGen:
         except Exception as e:
             logging.error(f"error in generating speech: {str(e)}")
 
-    def stream_to_file(self, speaker: str, sentence: str, idx: int):
-        with self.client.audio.speech.with_streaming_response.create(
-            model="kokoro", voice=speaker, input=sentence
-        ) as response:
-            response.stream_to_file(f"./data/output_{speaker}_{idx}.mp3")
-
     async def stream_response(
         self, websocket: WebSocket | None, speaker: str, sentence: str
     ):
         try:
+            audio_buffer = io.BytesIO()
+
             with self.client.audio.speech.with_streaming_response.create(
                 model="kokoro",
-                voice=speaker,
-                response_format="pcm",  # opus for websocket bytes transfer
+                voice=self.speaker_lookup[speaker],
+                response_format="mp3",  # opus for websocket bytes transfer
                 input=sentence,
             ) as response:
-                for chunk in response.iter_bytes(chunk_size=1024):
-                    await websocket.send_bytes(chunk)
+                for chunk in response.iter_bytes(chunk_size=4096):
+                    # await websocket.send_bytes(chunk)
+                    audio_buffer.write(chunk)
+                audio_buffer.seek(0)
+
+            # Convert audio to base64
+            audio_base64 = base64.b64encode(audio_buffer.read()).decode("utf-8")
+
+            # Create JSON response
+            response_data = {
+                "action": "tts_response",
+                "audio": audio_base64,
+            }
+
+            # Send over WebSocket
+            await websocket.send_json(response_data)
         except Exception as e:
             logging.error(f"error in stream response: {str(e)}")
