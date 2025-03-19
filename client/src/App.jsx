@@ -82,16 +82,31 @@ function App() {
   }, []);
 
   // Parse dialogue text into [speaker, dialogue] pairs
+  // each dialogue is broken up into individual sentence for faster tts
   const parseDialogues = (script) => {
     const lines = script
-      .trim() // Remove leading/trailing whitespace
-      .split("\n") // Split into lines
-      .filter((line) => line.trim()) // Remove empty lines
-      .map((line) => line.trim()); // Trim each line
+      .trim()
+      .split("\n")
+      .filter((line) => line.trim())
+      .map((line) => line.trim());
 
-    const parsedDialogues = lines.map((line) => {
-      const [speaker, ...dialogueParts] = line.split(":"); // Split at first colon
-      return [speaker, dialogueParts.join(":").trim()]; // Rejoin dialogue in case it contains colons
+    const sentenceRegex = /[^.!?]+[.!?]?/g; // Regex to break text into sentences
+
+    const parsedDialogues = [];
+
+    lines.forEach((line) => {
+      const [speaker, ...dialogueParts] = line.split(":");
+      const dialogue = dialogueParts.join(":").trim();
+
+      // Split dialogue into sentences
+      const sentences = dialogue.match(sentenceRegex) || [dialogue];
+
+      sentences.forEach((sentence) => {
+        const trimmedSentence = sentence.trim();
+        if (trimmedSentence) {
+          parsedDialogues.push([speaker.trim(), trimmedSentence]);
+        }
+      });
     });
 
     setDialogues(parsedDialogues);
