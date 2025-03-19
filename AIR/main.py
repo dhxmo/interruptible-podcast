@@ -120,6 +120,7 @@ args = parser.parse_args()
 
 sentenceIndex = 0
 
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     global sentenceIndex
@@ -148,13 +149,13 @@ async def websocket_endpoint(websocket: WebSocket):
                 # await websocket.send_bytes(audio_buffer.read())
 
                 # Convert binary data to base64 for JSON transmission
-                audio_base64 = base64.b64encode(audio_buffer.read()).decode('utf-8')
+                audio_base64 = base64.b64encode(audio_buffer.read()).decode("utf-8")
 
                 # Create a structured JSON response
                 response = {
                     "action": "tts_response",
                     "sentenceIndex": sentenceIndex,
-                    "audio": audio_base64
+                    "audio": audio_base64,
                 }
 
                 # Send JSON response
@@ -194,23 +195,20 @@ async def websocket_endpoint(websocket: WebSocket):
                         # binary audio data
                         audio_bytes = audio_buffer.read()
                         # Convert binary data to base64 for JSON transmission
-                        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+                        audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
 
                         # Create a structured JSON response
                         response = {
                             "action": "tts_response",
                             "sentenceIndex": sentence_index,
-                            "audio": audio_base64
+                            "audio": audio_base64,
                         }
 
                         # Send JSON response
                         print("sending response")
                         await websocket.send_json(response)
                     except Exception as e:
-                        error_response = {
-                            "action": "error",
-                            "message": str(e)
-                        }
+                        error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)
 
                 # handle interruption
