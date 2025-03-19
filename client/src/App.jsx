@@ -2,9 +2,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useReactMediaRecorder } from "react-media-recorder";
 
-// TODO: comment before this gets out of hand
-
-
 function App() {
   const [promptText, setPromptText] = useState("");
   const [socket, setSocket] = useState(null);
@@ -31,6 +28,7 @@ function App() {
     };
 
     socketRef.current.onmessage = (event) => {
+      // ---receive bytes from server and add to audioQueue
       if (event.data instanceof Blob) {
         console.log("Received audio blob from WebSocket:", event.data);
         setAudioQueue((prevQueue) => {
@@ -38,20 +36,29 @@ function App() {
           console.log("Audio queue after receiving new blob:", updatedQueue);
           return updatedQueue;
         });
+        // -- audio playback useEffect
 
-        if (handleInterruption) setHandleInterruption(false);
+        // TODO: need to set interruption handle to false and continue playback from where it was stopped
+        // if (handleInterruption) {
+        // setHandleInterruption(false);
+        // console.log("interruption to false");
+        // setCurrentSentenceIndex(currentSentenceIndex);
+        // setStartPlayback(true);
+        // }
       } else {
+        // --- receive text and ...
         const message = JSON.parse(event.data);
 
+        // -- store convo script locally
         if (message.action == "convo_transcript") {
           const newText = message.transcript;
           setResponseText(newText);
           localStorage.setItem("responseText", newText);
           setIsLoading(false);
 
-          parseDialogues(newText); // Parse new text when received
+          parseDialogues(newText); // Parse new text when received. save to dialogue
           setCurrentSentenceIndex(0); // Start with first sentence
-          setStartPlayback(true);
+          setStartPlayback(true); // start playback -- playback useEffect to send to tts server
         }
       }
 
@@ -84,7 +91,8 @@ function App() {
     setDialogues(parsedDialogues);
   };
 
-  // script submission
+  // --- convo playback useEffect
+  // send to tts server for tts
   useEffect(() => {
     if (startPlayback && currentSentenceIndex >= 0) {
       const [host, dialogue] = dialogues[currentSentenceIndex];
@@ -102,9 +110,10 @@ function App() {
         );
       }
     }
-  }, [startPlayback, currentSentenceIndex]);
+  }, [startPlayback, currentSentenceIndex, dialogues]);
 
-  // Playback audio when audioQueue changes --- script playback
+  // -- audio playback useEffect
+  // if audio in queue, then show visualizer and play
   useEffect(() => {
     if (audioQueue.length > 0) {
       console.log("Audio queue before playback:", audioQueue);
@@ -158,15 +167,16 @@ function App() {
           draw();
           // Handle playback completion
           audio.onended = () => {
-            console.log("Audio playback finished for:", audioBlob);
+            // clear blob from audioQueue to make room for next
             setAudioQueue((prevQueue) => {
               const updatedQueue = prevQueue.slice(1);
-              console.log("Audio queue after playback:", updatedQueue);
               return updatedQueue;
             });
             URL.revokeObjectURL(audioUrl);
             audioRef.current = null; // Clear the reference
 
+            // if handling interruption -> play interruption audio
+            // else play next in line
             if (!handleInterruption) {
               // Move to the next dialogue
               setCurrentSentenceIndex((prevIndex) => {
@@ -179,12 +189,14 @@ function App() {
                 }
                 return nextIndex;
               });
+            } else {
+              setHandleInterruption(false);
             }
           };
         })
         .catch((error) => console.error("Audio playback error:", error));
     }
-  }, [audioQueue, handleInterruption]);
+  }, [audioQueue, handleInterruption, dialogues]);
 
   // recording user interruption and sending to server
   const { status, startRecording, stopRecording, error } =
@@ -197,8 +209,7 @@ function App() {
       },
       blobPropertyBag: { type: "audio/webm" },
       onStart: () => {
-        console.log("Recording started");
-
+        // handle interruptions
         setHandleInterruption(true);
 
         // Stop the currently playing audio
@@ -209,16 +220,13 @@ function App() {
           audioRef.current = null; // Clear the reference
         }
 
-        // Clear the audio queue
-        console.log("Clearing audio queue...");
+        // Clear the audio queue to prevent playback of other media
         setAudioQueue([]);
-        console.log("Audio queue after clearing:", audioQueue);
-
+        // send handle interruption text to server
         if (
           socketRef.current &&
           socketRef.current.readyState === WebSocket.OPEN
         ) {
-          console.log("sending interruption text");
           socketRef.current.send(
             JSON.stringify({
               action: "tts",
