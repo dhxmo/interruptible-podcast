@@ -132,6 +132,16 @@ async def websocket_endpoint(websocket: WebSocket):
 
                 # generate with last and next sentence -> qwen -> send sentence back to client
                 # send interrupt_transcript with audio streaming from the text
+                #
+                # tts = gTTS(text=interruption_text, lang="en")
+                #
+                # # Save to bytes buffer
+                # audio_buffer = io.BytesIO()
+                # tts.write_to_fp(audio_buffer)
+                # audio_buffer.seek(0)
+                #
+                # # Send audio bytes back to client
+                # await websocket.send_bytes(audio_buffer.read())
             elif "text" in message:
                 data = json.loads(message["text"])
 
