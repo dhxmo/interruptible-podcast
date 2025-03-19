@@ -122,6 +122,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive()
+            # stt
             if "bytes" in message:
                 audio_data = message["bytes"]
                 audio_io = BytesIO(audio_data)
@@ -132,11 +133,16 @@ async def websocket_endpoint(websocket: WebSocket):
             elif "text" in message:
                 data = json.loads(message["text"])
 
+                # user prompt parse
                 if data.get("action") == "submit_prompt":
+                    # generate conversation here
+
+                    # send script back to client
                     await websocket.send_json(
                         {"action": "convo_transcript", "transcript": podcast_script}
                     )
-                    # # Convert text to speech
+                # tts
+                elif data.get("action") == "tts":
                     # tts = gTTS(text=data.get("prompt"), lang="en")
                     #
                     # # Save to bytes buffer
@@ -146,6 +152,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     #
                     # # Send audio bytes back to client
                     # await websocket.send_bytes(audio_buffer.read())
+                    pass
+                # handle interruption
                 elif data.get("action") == "init_audio_data":
                     last_sentence = data.get("last_sentence")
                     next_sentence = data.get("next_Sentence")
