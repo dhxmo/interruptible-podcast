@@ -28,38 +28,45 @@ function App() {
     };
 
     socketRef.current.onmessage = (event) => {
-      // ---receive bytes from server and add to audioQueue
-      if (event.data instanceof Blob) {
-        console.log("Received audio blob from WebSocket:", event.data);
-        setAudioQueue((prevQueue) => {
-          const updatedQueue = [...prevQueue, event.data];
-          console.log("Audio queue after receiving new blob:", updatedQueue);
-          return updatedQueue;
-        });
-        // -- audio playback useEffect
+      const message = JSON.parse(event.data);
 
-        // TODO: need to set interruption handle to false and continue playback from where it was stopped
-        // if (handleInterruption) {
-        //   setHandleInterruption(false);
-        //   console.log("interruption to false");
-        //   setCurrentSentenceIndex(currentSentenceIndex);
-        //   setStartPlayback(true);
-        // }
-      } else {
-        // --- receive text and ...
-        const message = JSON.parse(event.data);
+      // -- store convo script locally
+      if (message.action == "convo_transcript") {
+        const newText = message.transcript;
+        setResponseText(newText);
+        localStorage.setItem("responseText", newText);
+        setIsLoading(false);
 
-        // -- store convo script locally
-        if (message.action == "convo_transcript") {
-          const newText = message.transcript;
-          setResponseText(newText);
-          localStorage.setItem("responseText", newText);
-          setIsLoading(false);
+        parseDialogues(newText); // Parse new text when received. save to dialogue
+        setCurrentSentenceIndex(0); // Start with first sentence
+        setStartPlayback(true); // start playback -- playback useEffect to send to tts server
+      }
+      // -- audio parse and playback
+      else if (message.action === "tts_response") {
+        // Convert base64 audio back to binary
+        const binaryAudio = atob(message.audio);
 
-          parseDialogues(newText); // Parse new text when received. save to dialogue
-          setCurrentSentenceIndex(0); // Start with first sentence
-          setStartPlayback(true); // start playback -- playback useEffect to send to tts server
+        // Convert binary string to Uint8Array
+        const bytes = new Uint8Array(binaryAudio.length);
+        for (let i = 0; i < binaryAudio.length; i++) {
+          bytes[i] = binaryAudio.charCodeAt(i);
         }
+
+        // Create audio blob
+        const audioBlob = new Blob([bytes], { type: "audio/mp3" });
+
+        // Add to queue with correct index
+        setAudioQueue((prevQueue) =>
+          [
+            ...prevQueue,
+            {
+              blob: audioBlob,
+              sentenceIndex: message.sentenceIndex,
+            },
+          ].sort((a, b) => a.sentenceIndex - b.sentenceIndex)
+        ); // Keep queue ordered
+      } else if (message.action === "error") {
+        console.error("TTS server error:", message.message);
       }
 
       setShowPlayerView(true);
@@ -91,39 +98,80 @@ function App() {
     setDialogues(parsedDialogues);
   };
 
+  const requestedSentenceIndexes = useRef(new Set());
+
   // --- convo playback useEffect
   // send to tts server for tts
   useEffect(() => {
+    // works
+    // if (startPlayback && currentSentenceIndex >= 0) {
+    //   const [host, dialogue] = dialogues[currentSentenceIndex];
+    //   console.log("host, dialogue", host, dialogue);
+    //   if (
+    //     socketRef.current &&
+    //     socketRef.current.readyState === WebSocket.OPEN
+    //   ) {
+    //     socketRef.current.send(
+    //       JSON.stringify({
+    //         action: "tts",
+    //         host,
+    //         dialogue,
+    //       })
+    //     );
+    //   }
+    // }
+
+    const preloadBuffer = 2;
+
     if (startPlayback && currentSentenceIndex >= 0) {
-      const [host, dialogue] = dialogues[currentSentenceIndex];
-      console.log("host, dialogue", host, dialogue);
-      if (
-        socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
-      ) {
-        socketRef.current.send(
-          JSON.stringify({
-            action: "tts",
-            host,
-            dialogue,
-          })
-        );
+      // Request current sentence and preload the next few sentences
+      for (let i = 0; i < preloadBuffer; i++) {
+        const nextIndex = currentSentenceIndex + i;
+
+        if (
+          nextIndex < dialogues.length &&
+          !requestedSentenceIndexes.current.has(nextIndex)
+        ) {
+          const [host, dialogue] = dialogues[nextIndex];
+          console.log("host, dialogue", host, dialogue);
+
+          requestedSentenceIndexes.current.add(nextIndex); // mark sentence as requested
+          if (
+            socketRef.current &&
+            socketRef.current.readyState === WebSocket.OPEN
+          ) {
+            socketRef.current.send(
+              JSON.stringify({
+                action: "tts",
+                host,
+                dialogue,
+                sentenceIndex: nextIndex,
+              })
+            );
+          }
+        }
       }
     }
   }, [startPlayback, currentSentenceIndex, dialogues]);
 
+  // Reset the requested sentences when starting a new playback session
+  useEffect(() => {
+    if (startPlayback) {
+      requestedSentenceIndexes.current = new Set();
+    }
+  }, [startPlayback]);
+
   // -- audio playback useEffect
   // if audio in queue, then show visualizer and play
   useEffect(() => {
-    if (audioQueue.length > 0) {
+    if (audioQueue.length > 0 && !audioRef.current) {
       console.log("Audio queue before playback:", audioQueue);
 
-      const audioBlob = audioQueue[0];
-      const audioUrl = URL.createObjectURL(audioBlob);
+      const audioItem = audioQueue[0];
+
+      const audioUrl = URL.createObjectURL(audioItem.blob);
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
-
-      console.log("Playing audio from queue:", audioBlob);
 
       // Audio visualization setup
       const audioContext = new AudioContext();
@@ -164,37 +212,55 @@ function App() {
       audio
         .play()
         .then(() => {
+          // Update currentSentenceIndex to match what we're playing
+          if (currentSentenceIndex !== audioItem.sentenceIndex) {
+            setCurrentSentenceIndex(audioItem.sentenceIndex);
+          }
+
           draw();
           // Handle playback completion
           audio.onended = () => {
+            console.log("Audio ended, moving to next in queue");
+
             // clear blob from audioQueue to make room for next
             setAudioQueue((prevQueue) => {
               const updatedQueue = prevQueue.slice(1);
+              console.log(`Updated queue length: ${updatedQueue.length}`);
               return updatedQueue;
             });
             URL.revokeObjectURL(audioUrl);
             audioRef.current = null; // Clear the reference
 
+            // If this was the last sentence, end playback
+            if (audioItem.sentenceIndex === dialogues.length - 1) {
+              console.log("All dialogues have been played.");
+              setStartPlayback(false);
+            }
+
             // if handling interruption -> play interruption audio
             // else play next in line
-            if (!handleInterruption) {
-              // Move to the next dialogue
-              setCurrentSentenceIndex((prevIndex) => {
-                const nextIndex = prevIndex + 1;
-                if (nextIndex < dialogues.length) {
-                  console.log("Moving to next dialogue:", dialogues[nextIndex]);
-                } else {
-                  console.log("All dialogues have been played.");
-                  setStartPlayback(false); // Stop playback if all dialogues are done
-                }
-                return nextIndex;
-              });
-            } else {
-              setHandleInterruption(false);
-            }
+            // if (!handleInterruption) {
+            //   // Move to the next dialogue
+            //   setCurrentSentenceIndex((prevIndex) => {
+            //     const nextIndex = prevIndex + 1;
+            //     if (nextIndex < dialogues.length) {
+            //       console.log("Moving to next dialogue:", dialogues[nextIndex]);
+            //     } else {
+            //       console.log("All dialogues have been played.");
+            //       setStartPlayback(false); // Stop playback if all dialogues are done
+            //     }
+            //     return nextIndex;
+            //   });
+            // } else {
+            //   setHandleInterruption(false);
+            // }
           };
         })
         .catch((error) => console.error("Audio playback error:", error));
+    } else if (audioQueue.length > 0 && audioRef.current) {
+      console.log("Skipping playback: audio already playing");
+    } else if (audioQueue.length === 0 && !audioRef.current) {
+      console.log("Skipping playback: queue empty");
     }
   }, [audioQueue, handleInterruption, dialogues]);
 
