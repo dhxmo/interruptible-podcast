@@ -1,10 +1,12 @@
 import argparse
+import io
 import json
 from io import BytesIO
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from gtts import gTTS
 
 from tests.constants import podcast_script
 from src.deep_research.search import DeepResearcher
@@ -143,20 +145,27 @@ async def websocket_endpoint(websocket: WebSocket):
                     )
                 # tts
                 elif data.get("action") == "tts":
-                    # tts = gTTS(text=data.get("prompt"), lang="en")
-                    #
-                    # # Save to bytes buffer
-                    # audio_buffer = io.BytesIO()
-                    # tts.write_to_fp(audio_buffer)
-                    # audio_buffer.seek(0)
-                    #
-                    # # Send audio bytes back to client
-                    # await websocket.send_bytes(audio_buffer.read())
-                    pass
+                    host = data.get("host")
+                    dialogue = data.get("dialogue")
+                    try:
+                        tts = gTTS(text=dialogue, lang="en")
+
+                        # Save to bytes buffer
+                        audio_buffer = io.BytesIO()
+                        tts.write_to_fp(audio_buffer)
+                        audio_buffer.seek(0)
+
+                        # Send audio bytes back to client
+                        await websocket.send_bytes(audio_buffer.read())
+                    except Exception as e:
+                        print("error in streaming audio", e)
+
                 # handle interruption
-                elif data.get("action") == "init_audio_data":
-                    last_sentence = data.get("last_sentence")
-                    next_sentence = data.get("next_Sentence")
+                elif data.get("action") == "init_interruption":
+                    next_sentence = data.get("next_sentence")
+
+                    # generate with qwen response with RAG
+                    # flowing the conversation into the next sentence
     except Exception as e:
         print(f"Error: {e}")
     finally:

@@ -4,13 +4,6 @@ from typing import Dict, Any
 from fastapi import WebSocket
 from openai import OpenAI
 
-# TODO only for local testing purposes
-# import pyaudio
-#
-# player = pyaudio.PyAudio().open(
-#     format=pyaudio.paInt16, channels=1, rate=24000, output=True
-# )
-
 
 class SpeechGen:
 
@@ -22,7 +15,7 @@ class SpeechGen:
         }
 
     async def generate_speech(
-        self, websocket: WebSocket, session: Dict[str, Any], podcast_script: str
+        self, websocket: WebSocket | None, session: Dict[str, Any], podcast_script: str
     ):
         try:
             lines = [

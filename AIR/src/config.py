@@ -11,45 +11,47 @@ def id_generator(length):
 
 @dataclass(kw_only=True)
 class Config:
-    research_loop_count: int = 3
+    research_loop_count: int = 1
 
     # only for testing on local CPU
-    # local_llm = "qwen2.5:0.5b"
-    # local_llm_reasoning = "qwen2.5:0.5b"
-    # local_llm_podcast_gen = (
-    #     "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q4_K_M"
-    # )
+    local_llm = "qwen2.5:0.5b"
+    local_llm_reasoning = "qwen2.5:0.5b"
+    local_llm_podcast_gen = (
+        # "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q4_K_M"
+        "hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q4_K_M"
+    )
 
     # for testing on remote
-    local_llm = "qwen2.5:latest"
-    local_llm_reasoning = "deepseek-r1:latest"
-    local_llm_podcast_gen = (
-        "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0"
-    )
+    # local_llm = "qwen2.5:latest"
+    # local_llm_reasoning = "deepseek-r1:latest"
+    # local_llm_podcast_gen = (
+    #     "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0"
+    # )
 
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
-    search_max_results = 2
+    search_max_results = 1
     fetch_full_page = True
     ollama_base_url = "http://localhost:11434/"
     uuid = id_generator(7)
     HF_EMBEDDINGS_MODEL_NAME = "all-MiniLM-L6-v2"
     INDEX_PERSIST_DIRECTORY = "./data/chromadb"
 
-    podcast_name = "AER"
     roles_person1 = (
-        "Provocateur: stirs the pot—asks bold, edgy questions, throws out hot takes, and challenges "
-        "assumptions. hype machine—passionate, excitable, and all-in on every topic"
+        "Chaos Gremlin: lights the fuse—spits wild, unhinged takes, yells insane questions, and flips every idea "
+        "into a dumpster fire. Hype Beast—screaming, cackling, and cranked to 11 on every damn thing."
     )
+
     roles_person2 = (
-        "Voice of Reason: counters with logic, wit, or a calming perspective, grounding the conversation. "
-        "brings deep knowledge on the podcast’s niche—whether it’s tech or history"
+        "Twisted Wingman: rides the crazy train but throws in dark humor, savage jabs, or a warped bro-logic to keep "
+        "it rolling. Knows random, gritty shit—drops weird facts or street-smarts like a loose cannon."
     )
+
     engagement_techniques = (
-        "Each host, based on their role, issues a specific challenge to the audience tied to the "
-        "episode’s topic or their interplay. They present it mid-episode to hook listeners and "
-        "again at the end with clear instructions (e.g., “Share your take with us!”). The "
-        "challenges play off their contrasting styles for maximum effect."
+        "Each host, fueled by their unhinged vibe, hurls a batshit challenge at the audience mid-convo that ties into "
+        "the topic or their bro-chaos. They scream it once in the middle to wake listeners up, then blast it again at "
+        "the end with a loud, sloppy call-to-action (e.g., ‘Yell at us on X, you cowards!’). The challenges clash their "
+        "wild styles—total madness meets gritty hype—for max bro-energy."
     )
 
     faster_whisper_model = "distil-medium.en"

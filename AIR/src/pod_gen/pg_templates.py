@@ -33,7 +33,7 @@ Why: This ain’t a podcast—it’s a runaway train of dude-bro anarchy.
 INSTRUCTION:  
 Conversation so far is in CONTEXT. Keep the madness flowing—pick up EXACTLY where the last dude left off, no repeats, 
 no sane transitions, just pure unhinged momentum. Last speaker in CONTEXT sets who’s next: if <Host1> ended, <Host2> 
-kicks off; if <Host2> ended, <Host1> goes. This is live, loud, and unfiltered—don’t you dare say “after the break” or 
+kicks off; if Host2 ended, Host1 goes. This is live, loud, and unfiltered—don’t you dare say “after the break” or 
 “picking up”—just GO.  
 
 Output is ONLY Host1 and Host2 yelling, riffing, and losing it. NOTHING ELSE. No intros, no outros, no summaries—just 

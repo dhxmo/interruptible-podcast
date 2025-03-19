@@ -22,24 +22,17 @@ class PodGenStandard:
         self,
         session: Dict[str, Any],
         talking_points: str,
-        convo_tone: str,
     ):
         result = await self.llm.ainvoke(
             [
                 SystemMessage(
                     content=podgen_instruction.format(
                         running_summary=session["running_summary"],
-                        conversation_style=convo_tone,
-                        output_language="ENGLISH",
-                        roles_person1=Config.roles_person1,
-                        roles_person2=Config.roles_person2,
-                        engagement_techniques=Config.engagement_techniques,
                     )
                 ),
                 HumanMessage(
                     content=user_instruction.format(
                         talking_points=talking_points,
-                        conversation_style=convo_tone,
                         output_language="ENGLISH",
                         roles_person1=Config.roles_person1,
                         roles_person2=Config.roles_person2,
