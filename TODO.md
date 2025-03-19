@@ -1,5 +1,10 @@
 # untitled project: Interruptible Podcast
 
+1. update podcast_generation template. podcast no more. We're going to have casual conversations thta may or 
+may not be informative. create a menadering conversation kind of talking about the talking points, but mostly just 
+shooting the shit. Couple guys just hanging out.
+
+
     TTS altrnatives
 #1 -- gpu in real time
   - https://github.com/daswer123/xtts-api-server/tree/main  --- GPU based
