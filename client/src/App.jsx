@@ -40,10 +40,10 @@ function App() {
 
         // TODO: need to set interruption handle to false and continue playback from where it was stopped
         // if (handleInterruption) {
-        // setHandleInterruption(false);
-        // console.log("interruption to false");
-        // setCurrentSentenceIndex(currentSentenceIndex);
-        // setStartPlayback(true);
+        //   setHandleInterruption(false);
+        //   console.log("interruption to false");
+        //   setCurrentSentenceIndex(currentSentenceIndex);
+        //   setStartPlayback(true);
         // }
       } else {
         // --- receive text and ...
