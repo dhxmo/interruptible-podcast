@@ -37,6 +37,8 @@ function App() {
         setIsLoading(false);
 
         parseDialogues(newText); // Parse new text when received. save to dialogue
+
+        console.log("set 0 index and start playback");
         setCurrentSentenceIndex(0); // Start with first sentence
         setStartPlayback(true); // start playback -- playback useEffect to send to tts server
       }
@@ -113,15 +115,13 @@ function App() {
     setDialogues(parsedDialogues);
   };
 
-  const requestedSentenceIndexes = useRef(new Set());
-
   // --- convo playback useEffect
   // send to tts server for tts
   useEffect(() => {
     // works
     if (startPlayback && currentSentenceIndex >= 0) {
       const [host, dialogue] = dialogues[currentSentenceIndex];
-      console.log("host, dialogue", host, dialogue);
+      console.log("playing ------------", host, dialogue);
       if (
         socketRef.current &&
         socketRef.current.readyState === WebSocket.OPEN
@@ -135,55 +135,43 @@ function App() {
         );
       }
     }
-
-    // const preloadBuffer = 1;
-
-    // if (startPlayback && currentSentenceIndex >= 0) {
-    //   // Request current sentence and preload the next few sentences
-    //   for (let i = 0; i < preloadBuffer; i++) {
-    //     const nextIndex = currentSentenceIndex + i;
-
-    //     if (
-    //       nextIndex < dialogues.length &&
-    //       !requestedSentenceIndexes.current.has(nextIndex)
-    //     ) {
-    //       const [host, dialogue] = dialogues[nextIndex];
-    //       console.log("host, dialogue", host, dialogue);
-
-    //       requestedSentenceIndexes.current.add(nextIndex); // mark sentence as requested
-    //       if (
-    //         socketRef.current &&
-    //         socketRef.current.readyState === WebSocket.OPEN
-    //       ) {
-    //         socketRef.current.send(
-    //           JSON.stringify({
-    //             action: "tts",
-    //             host,
-    //             dialogue,
-    //             sentenceIndex: nextIndex,
-    //           })
-    //         );
-    //       }
-    //     }
-    //   }
-    // }
   }, [startPlayback, currentSentenceIndex, dialogues]);
-
-  // Reset the requested sentences when starting a new playback session
-  useEffect(() => {
-    if (startPlayback) {
-      requestedSentenceIndexes.current = new Set();
-    }
-  }, [startPlayback]);
 
   // -- audio playback useEffect
   // if audio in queue, then show visualizer and play
   useEffect(() => {
+    // --- this help spreload, but skips a few sentences. let's figure out how to tackle this
+    // if (audioQueue.length === 0 && !handleInterruption) {
+    //   // Send two successive indices if queue is empty
+    //   setCurrentSentenceIndex((prevIndex) => {
+    //     const nextIndex = prevIndex + 1;
+    //     if (nextIndex < dialogues.length) {
+    //       // Schedule the second index to be sent after a short delay
+    //       setTimeout(() => {
+    //         setCurrentSentenceIndex((prevIndex) => {
+    //           const secondNextIndex = prevIndex + 1;
+    //           if (secondNextIndex < dialogues.length) {
+    //             console.log(
+    //               "Sending second dialogue:",
+    //               dialogues[secondNextIndex]
+    //             );
+    //           }
+    //           return secondNextIndex;
+    //         });
+    //       }, 100); // Small delay to ensure state updates properly
+    //     } else {
+    //       console.log("All dialogues have been played.");
+    //       setStartPlayback(false); // Stop playback if all dialogues are done
+    //     }
+    //     return nextIndex;
+    //   });
+    // } else
+
+    console.log("audio q length", audioQueue.length);
+
     if (audioQueue.length > 0 && !audioRef.current) {
-      console.log("Audio queue before playback:", audioQueue);
-
+      // --- load audio from Q and play with context
       const audioItem = audioQueue[0];
-
       const audioUrl = URL.createObjectURL(audioItem.blob);
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
@@ -227,16 +215,8 @@ function App() {
       audio
         .play()
         .then(() => {
-          // Update currentSentenceIndex to match what we're playing
-          // if (currentSentenceIndex !== audioItem.sentenceIndex) {
-          //   setCurrentSentenceIndex(audioItem.sentenceIndex);
-          // }
-
           draw();
-          // Handle playback completion
           audio.onended = () => {
-            console.log("Audio ended, moving to next in queue");
-
             // clear blob from audioQueue to make room for next
             setAudioQueue((prevQueue) => {
               const updatedQueue = prevQueue.slice(1);
@@ -246,18 +226,20 @@ function App() {
             URL.revokeObjectURL(audioUrl);
             audioRef.current = null; // Clear the reference
 
-            // If this was the last sentence, end playback
-            // if (audioItem.sentenceIndex === dialogues.length - 1) {
-            // console.log("All dialogues have been played.");
-            // setStartPlayback(false);
-            // }
+            console.log(
+              "after clean up : audio queue length",
+              audioQueue.length
+            );
 
             // if handling interruption -> play interruption audio
             // else play next in line
             if (!handleInterruption) {
+              console.log("not followed by an interruption");
               // Move to the next dialogue
               setCurrentSentenceIndex((prevIndex) => {
                 const nextIndex = prevIndex + 1;
+                console.log("indices", prevIndex, nextIndex);
+
                 if (nextIndex < dialogues.length) {
                   console.log("Moving to next dialogue:", dialogues[nextIndex]);
                 } else {
@@ -268,6 +250,7 @@ function App() {
               });
             } else {
               setHandleInterruption(false);
+              console.log("interruption handled");
             }
           };
         })
@@ -295,7 +278,6 @@ function App() {
 
         // Stop the currently playing audio
         if (audioRef.current) {
-          console.log("Stopping current audio playback...");
           audioRef.current.pause();
           audioRef.current.currentTime = 0; // Reset playback position
           audioRef.current = null; // Clear the reference
@@ -343,10 +325,8 @@ function App() {
 
   const handleTalkClick = () => {
     if (status === "idle" || status === "stopped") {
-      console.log("Starting recording...");
       startRecording();
     } else if (status === "recording") {
-      console.log("Stopping recording...");
       stopRecording();
     }
   };

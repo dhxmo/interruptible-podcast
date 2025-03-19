@@ -13,7 +13,7 @@ class SpeechGen:
         self.client = OpenAI(base_url="http://localhost:8880/v1", api_key="not-needed")
         self.speaker_lookup = {
             "Host1": "am_puck(1)+am_michael(1.5)",
-            "Host2": "am_puck(1)+am_echo(1.5)",
+            "Host2": "af_bella(1)+af_alloy(1.5)",
         }
 
     async def generate_speech(
