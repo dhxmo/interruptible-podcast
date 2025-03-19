@@ -25,13 +25,6 @@ class SpeechGen:
                 (line.split(":")[0], line.split(":")[1].strip()) for line in lines
             ]
 
-            # add a parallel thread to listen for interruption. process speech ->
-            # qwen response based on if sentence_idx-1 , if sentence_idx and if sentence_idx+1
-            # initial websocket msg for interruption. generate msg from qwen: "Oh, I think our user wants to ask a question"
-            # ... something like this and then stream audio chunks in -> transcribe -> process through qwen
-            # (previous sentence spoken + user query + next sentence spoken) -> generate transition sentence between these while
-            # contextually answering question
-
             for sentence_idx, (speaker, sentence) in enumerate(dialogues):
                 if speaker not in self.speaker_lookup:
                     continue
