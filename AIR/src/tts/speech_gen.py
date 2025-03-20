@@ -22,6 +22,8 @@ class SpeechGen:
         self.priority_queue = asyncio.Queue()
         self.processing = False
         self.current_task: Optional[asyncio.Task] = None
+        # How long to wait between processing each normal request (in seconds)
+        self.normal_processing_delay = 1.0
 
     async def add_normal_request(self, websocket, action, speaker, sentence, idx):
         await self.normal_queue.put((websocket, action, speaker, sentence, idx))
@@ -49,6 +51,9 @@ class SpeechGen:
                     request = await self.priority_queue.get()
                 elif not self.normal_queue.empty():
                     request = await self.normal_queue.get()
+                    # Add delay before processing each normal request
+                    # This gives time for priority requests to arrive
+                    await asyncio.sleep(self.normal_processing_delay)
                 else:
                     # Both queues are empty
                     print("both queues are empty. breaking")
@@ -69,7 +74,7 @@ class SpeechGen:
         # tts = gTTS(text=sentence, lang="en")
         # tts.write_to_fp(audio_buffer)
         # audio_buffer.seek(0)
-
+        #
         # DO NOT DELETE
         # with better compute uncomment this
         with self.client.audio.speech.with_streaming_response.create(
