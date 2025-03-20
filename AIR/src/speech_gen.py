@@ -48,22 +48,22 @@ class SpeechGen:
             audio_buffer = io.BytesIO()
 
             # for faster local tts
-            # tts = gTTS(text=sentence, lang="en")
-            # tts.write_to_fp(audio_buffer)
-            # audio_buffer.seek(0)
+            tts = gTTS(text=sentence, lang="en")
+            tts.write_to_fp(audio_buffer)
+            audio_buffer.seek(0)
 
             # DO NOT DELETE
             # with better compute uncomment this
-            with self.client.audio.speech.with_streaming_response.create(
-                model="kokoro",
-                voice=self.speaker_lookup[speaker],
-                response_format="mp3",  # opus for websocket bytes transfer
-                input=sentence,
-            ) as response:
-                for chunk in response.iter_bytes(chunk_size=4096):
-                    # await websocket.send_bytes(chunk)
-                    audio_buffer.write(chunk)
-                audio_buffer.seek(0)
+            # with self.client.audio.speech.with_streaming_response.create(
+            #     model="kokoro",
+            #     voice=self.speaker_lookup[speaker],
+            #     response_format="mp3",  # opus for websocket bytes transfer
+            #     input=sentence,
+            # ) as response:
+            #     for chunk in response.iter_bytes(chunk_size=4096):
+            #         # await websocket.send_bytes(chunk)
+            #         audio_buffer.write(chunk)
+            #     audio_buffer.seek(0)
 
             # Convert audio to base64
             audio_base64 = base64.b64encode(audio_buffer.read()).decode("utf-8")

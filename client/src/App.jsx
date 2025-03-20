@@ -8,17 +8,10 @@ function App() {
 
   const [dialogues, setDialogues] = useState([]); // New state for parsed dialogues
   const dialoguesRef = useRef([]);
-  // const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1); // -1 is none playing
 
   // // --- playback
-  // const audioRef = useRef(null);
-  // const [preloadBuffer, setPreloadBuffer] = useState(0);
-  // const [startPlayback, setStartPlayback] = useState(false);
-  // const [audioQueue, setAudioQueue] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPlayerView, setShowPlayerView] = useState(false);
-  // const [responseText, setResponseText] = useState("");
-  // const [handleInterruption, setHandleInterruption] = useState(false);
 
   const currentIndexRef = useRef(0);
   const audioQueueRef = useRef([]); // will store Audio objects
@@ -146,7 +139,6 @@ function App() {
       socket?.readyState === WebSocket.OPEN
     ) {
       const [host, dialogue] = dialoguesRef.current[currentIndexRef.current];
-      console.log("preloading", host, dialogue);
 
       currentIndexRef.current += 1;
       socket.send(
@@ -176,72 +168,66 @@ function App() {
   };
 
   // recording user interruption and sending to server
-  // const { status, startRecording, stopRecording, error } =
-  //   useReactMediaRecorder({
-  //     audio: {
-  //       echoCancellation: true,
-  //       noiseSuppression: false, // Adjust based on testing
-  //       autoGainControl: true,
-  //       sampleRate: 16000,
-  //     },
-  //     blobPropertyBag: { type: "audio/webm" },
-  //     onStart: () => {
-  //       // handle interruptions
-  //       setHandleInterruption(true);
+  const { status, startRecording, stopRecording, error } =
+    useReactMediaRecorder({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: false, // Adjust based on testing
+        autoGainControl: true,
+        sampleRate: 16000,
+      },
+      blobPropertyBag: { type: "audio/webm" },
+      onStart: () => {
+        console.log("Recording started, interrupting playback...");
 
-  //       // Stop the currently playing audio
-  //       if (audioRef.current) {
-  //         audioRef.current.pause();
-  //         audioRef.current.currentTime = 0; // Reset playback position
-  //         audioRef.current = null; // Clear the reference
-  //       }
-
-  //       // Clear the audio queue to prevent playback of other media
-  //       setAudioQueue([]);
-  //       // send handle interruption text to server
-  //       if (
-  //         socketRef.current &&
-  //         socketRef.current.readyState === WebSocket.OPEN
-  //       ) {
-  //         socketRef.current.send(
-  //           JSON.stringify({
-  //             action: "tts",
-  //             host: "Host1",
-  //             dialogue: "Whats on your mind?",
-  //           })
-  //         );
-  //       }
-  //     },
-  //     onStop: (blobUrl, blob) => {
-  //       // Send to server
-  //       // TODO: fetch next sentence from the responseText
-  //       if (
-  //         socketRef.current &&
-  //         socketRef.current.readyState === WebSocket.OPEN
-  //       ) {
-  //         socketRef.current.send(
-  //           JSON.stringify({
-  //             action: "init_interruption",
-  //             next_sentence: "...",
-  //           })
-  //         );
-  //         socketRef.current.send(blob);
-  //       }
-  //     },
-  //   });
+        // Play a custom interruption message from host
+        if (
+          socketRef.current &&
+          socketRef.current.readyState === WebSocket.OPEN
+        ) {
+          socketRef.current.send(
+            JSON.stringify({
+              action: "tts",
+              host: "Host1",
+              dialogue: "Whats on your mind?",
+            })
+          );
+        }
+      },
+      onStop: (blobUrl, blob) => {
+        // Send to server
+        // TODO: fetch next sentence from the responseText
+        if (
+          socketRef.current &&
+          socketRef.current.readyState === WebSocket.OPEN
+        ) {
+          console.log(
+            "sending sentence",
+            dialoguesRef.current[currentIndexRef.current + 1]
+          );
+          socketRef.current.send(
+            JSON.stringify({
+              action: "init_interruption",
+              next_sentence: currentIndexRef.current + 1,
+            })
+          );
+          socketRef.current.send(blob);
+        }
+      },
+    });
 
   // // Log recording status and errors
-  // useEffect(() => {
-  //   console.log("Recording status:", status);
-  //   if (error) console.error("Recording error:", error);
-  // }, [status, error]);
+  useEffect(() => {
+    console.log("Recording status:", status);
+    if (error) console.error("Recording error:", error);
+  }, [status, error]);
 
   const handleTalkClick = () => {
-    // if (status === "idle" || status === "stopped") {
-    //   startRecording();
-    // } else if (status === "recording") {
-    //   stopRecording();
-    // }
+    if (status === "idle" || status === "stopped") {
+      startRecording();
+    } else if (status === "recording") {
+      stopRecording();
+    }
   };
 
   const handleSubmit = (e) => {
