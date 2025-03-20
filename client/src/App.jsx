@@ -21,7 +21,7 @@ function App() {
   // --- interruption related
   const isHandleInterruption = useRef(false);
   const interruptionQueueRef = useRef([]);
-  const resumeIndexRef = useRef(null);
+  // const resumeIndexRef = useRef(null);
 
   // sockets
   useEffect(() => {
@@ -45,18 +45,19 @@ function App() {
     };
   }, []);
 
+  //! [FLOW] - stars here
   function handleSocketMessage(event) {
     try {
       const message = JSON.parse(event.data);
 
-      // -- 1. store convo script locally, parse and store to dialoguesRef
+      // -- store convo script locally, parse and store to dialoguesRef
       if (message.action == "convo_transcript") {
         const newText = message.transcript;
         localStorage.setItem("responseText", newText);
         setIsLoading(false);
         parseDialogues(newText); // Parse new text when received. save to dialogue
       }
-      // -- 4. receive audio
+      // -- receive audio after tts
       else if (message.action === "tts_response") {
         if (!message.audio || message.audio.length < 100) {
           console.error("Received empty or invalid audio payload", message);
@@ -72,41 +73,34 @@ function App() {
           bytes[i] = binaryAudio.charCodeAt(i);
         }
 
-        // --- 5. Create audio blob and add to queue
+        // ---  Create audio blob and add to queue
         const audioBlob = new Blob([bytes], { type: "audio/mp3" });
         const audio = new Audio(URL.createObjectURL(audioBlob));
         audioQueueRef.current.push(audio);
-        audio.onended = () => handleAudioEnded();
+        audio.onended = () => handleAudioEnded(); // when this finishes, play next
 
-        // --- 6. If nothing is playing, start playback
-        console.log(
-          "!isPlayingRef.current && !isHandleInterruption.current",
-          !isPlayingRef.current,
-          !isHandleInterruption.current
-        );
+        // ---  If nothing is playing, start playback if not handling interruption
         if (!isPlayingRef.current && !isHandleInterruption.current) {
           playNext();
         }
       }
       // --- handle interruption
       else if (message.action === "interruption_tts_response") {
-        isPlayingRef.current = false;
+        isPlayingRef.current = false; // stop any audio playback from the script
 
+        // parse audio from base64 to blob
         const binaryAudio = atob(message.audio);
         const bytes = new Uint8Array(binaryAudio.length);
         for (let i = 0; i < binaryAudio.length; i++) {
           bytes[i] = binaryAudio.charCodeAt(i);
         }
-
         const audioBlob = new Blob([bytes], { type: "audio/mp3" });
         const audio = new Audio(URL.createObjectURL(audioBlob));
-        console.log("received audio from interruption_tts_response");
 
-        interruptionQueueRef.current.push(audio);
+        interruptionQueueRef.current.push(audio); // add audio to interruption queue to playback on priority
 
         // If not playing anything currently, start playing interruption response
         if (isHandleInterruption.current) {
-          console.log("playing interruption audio");
           playInterruptionQueue();
         }
       } else if (message.action === "error") {
@@ -119,7 +113,7 @@ function App() {
     }
   }
 
-  // 2. on setting dialogues for the first time, begin:::
+  // on setting dialogues for the first time, begin:::
   useEffect(() => {
     dialoguesRef.current = dialogues;
 
@@ -130,7 +124,7 @@ function App() {
 
   // Parse dialogue text into [speaker, dialogue] pairs
   // each dialogue is broken up into individual sentence for faster tts
-  const parseDialogues = (script) => {
+  function parseDialogues(script) {
     const lines = script
       .trim()
       .split("\n")
@@ -156,9 +150,10 @@ function App() {
       });
     });
     setDialogues(parsedDialogues);
-  };
+  }
 
-  // 3. send all dialogues for tts
+  // --- send all dialogues for tts
+  // sending all ensures smooth playback
   function preloadNext(socket) {
     while (
       currentIndexRef.current < dialoguesRef.current.length &&
@@ -178,7 +173,8 @@ function App() {
     }
   }
 
-  const playNext = () => {
+  // --- play next script audio file form the audioQueue
+  function playNext() {
     if (audioQueueRef.current.length > 0) {
       const nextAudio = audioQueueRef.current.shift();
       audioRef.current = nextAudio;
@@ -187,14 +183,15 @@ function App() {
     } else {
       isPlayingRef.current = false;
     }
-  };
+  }
 
-  const handleAudioEnded = () => {
+  // --- play the next audio file in the audioQ
+  function handleAudioEnded() {
     isPlayingRef.current = false;
     playNext(); // Play the next audio in the queue
-  };
+  }
 
-  // recording user interruption and sending to server
+  // --- recording user interruption and sending to server
   const { status, startRecording, stopRecording, error } =
     useReactMediaRecorder({
       audio: {
@@ -206,7 +203,6 @@ function App() {
       blobPropertyBag: { type: "audio/webm" },
       onStop: (blobUrl, blob) => {
         // Send to server
-        // TODO: fetch next sentence from the responseText
         if (
           socketRef.current &&
           socketRef.current.readyState === WebSocket.OPEN
@@ -222,21 +218,21 @@ function App() {
       },
     });
 
-  // // Log recording status and errors
+  // Log recording status and errors
   useEffect(() => {
     console.log("Recording status:", status);
     if (error) console.error("Recording error:", error);
   }, [status, error]);
 
-  const handleTalkClick = () => {
+  // --- record user interruption
+  function handleTalkClick() {
     if (status === "idle" || status === "stopped") {
-      // Pause current audio
-      console.log("pauing current audio");
+      // --- Pause current playing audio
       if (audioRef.current) {
         audioRef.current.pause();
       }
       // Store current playback index
-      resumeIndexRef.current = currentIndexRef.current - 1; // The one that was playing
+      // resumeIndexRef.current = currentIndexRef.current - 1; // The one that was playing
       // Clear interruption queue
       interruptionQueueRef.current = [];
 
@@ -245,31 +241,30 @@ function App() {
 
       // Play custom interruption prompt and start recording after play
       const interruptionPrompt = new Audio("/interruption_audio.mp3");
-      interruptionPrompt.onended = () => startRecording();
+      interruptionPrompt.onended = () => startRecording(); // start recording on interruption audio end
       interruptionPrompt.play();
     } else if (status === "recording") {
       stopRecording();
     }
-  };
+  }
 
-  const playInterruptionQueue = () => {
+  // --- load interruption audio onto context
+  function playInterruptionQueue() {
     if (interruptionQueueRef.current.length > 0) {
       const nextAudio = interruptionQueueRef.current.shift();
       audioRef.current = nextAudio;
       isPlayingRef.current = true;
       nextAudio.play();
 
+      // on interruption audio end, play the next script playback
       nextAudio.onended = () => {
         isHandleInterruption.current = false;
-        console.log(
-          "once doing handling interruption, reset flags. hopefully replay playblack"
-        );
         playNext();
       };
     }
-  };
+  }
 
-  const handleSubmit = (e) => {
+  function handleSubmit(e) {
     e.preventDefault();
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       socketRef.current.send(
@@ -278,11 +273,11 @@ function App() {
       setPromptText("");
       setIsLoading(true);
     }
-  };
+  }
 
-  const handleBack = () => {
+  function handleBack() {
     setShowPlayerView(false);
-  };
+  }
 
   return (
     <div style={{ padding: "20px" }}>
