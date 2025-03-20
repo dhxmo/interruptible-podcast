@@ -134,10 +134,11 @@ async def websocket_endpoint(websocket: WebSocket):
                 # TODO: generate with transcript + nextSentence -> qwen -> interrupt_transcript
                 interruption_text = "this is me handling the interruption"
 
-                await tts.stream_response(
-                    websocket=websocket,
+                # user interruption is high priority
+                await tts.add_priority_request(
+                    websocket,
                     action="interruption_tts_response",
-                    speaker="Host2",
+                    speaker="Host1",
                     sentence=interruption_text,
                     idx=0,
                 )
@@ -159,8 +160,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     idx = data.get("idx")
 
                     try:
-                        await tts.stream_response(
-                            websocket=websocket,
+                        await tts.add_normal_request(
+                            websocket,
                             action="tts_response",
                             speaker=host,
                             sentence=dialogue,

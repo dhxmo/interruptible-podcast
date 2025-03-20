@@ -1,8 +1,9 @@
-import base64
+import asyncio
 import base64
 import io
 import logging
 from io import BytesIO
+from typing import Optional
 
 from fastapi import WebSocket
 from gtts import gTTS
@@ -17,26 +18,70 @@ class SpeechGen:
             "Host1": "am_puck(1)+am_michael(1.5)",
             "Host2": "af_bella(1)+af_alloy(1.5)",
         }
+        self.normal_queue = asyncio.Queue()
+        self.priority_queue = asyncio.Queue()
+        self.processing = False
+        self.current_task: Optional[asyncio.Task] = None
 
-    @staticmethod
-    def generate_tts_audio(speaker: str, sentence: str) -> BytesIO:
+    async def add_normal_request(self, websocket, action, speaker, sentence, idx):
+        await self.normal_queue.put((websocket, action, speaker, sentence, idx))
+        if not self.processing:
+            await self.start_processing()
+
+    async def add_priority_request(self, websocket, action, speaker, sentence, idx):
+        await self.priority_queue.put((websocket, action, speaker, sentence, idx))
+        if not self.processing:
+            await self.start_processing()
+        elif self.current_task:
+            # If we're already processing something, we don't cancel it
+            # but the next item processed will be from the priority queue
+            pass
+
+    async def start_processing(self):
+        self.processing = True
+        self.current_task = asyncio.create_task(self.process_queues())
+
+    async def process_queues(self):
+        try:
+            while True:
+                # Always check priority queue first
+                if not self.priority_queue.empty():
+                    request = await self.priority_queue.get()
+                elif not self.normal_queue.empty():
+                    request = await self.normal_queue.get()
+                else:
+                    # Both queues are empty
+                    print("both queues are empty. breaking")
+                    break
+
+                websocket, action, speaker, sentence, idx = request
+                await self.stream_response(websocket, action, speaker, sentence, idx)
+        except Exception as e:
+            logging.error(f"Error processing TTS queue: {str(e)}")
+        finally:
+            self.processing = False
+            self.current_task = None
+
+    def generate_tts_audio(self, speaker: str, sentence: str) -> BytesIO:
         audio_buffer = io.BytesIO()
-        tts = gTTS(text=sentence, lang="en")
-        tts.write_to_fp(audio_buffer)
-        audio_buffer.seek(0)
+
+        # uncomment for low cpu usage testing
+        # tts = gTTS(text=sentence, lang="en")
+        # tts.write_to_fp(audio_buffer)
+        # audio_buffer.seek(0)
 
         # DO NOT DELETE
         # with better compute uncomment this
-        # with self.client.audio.speech.with_streaming_response.create(
-        #     model="kokoro",
-        #     voice=self.speaker_lookup[speaker],
-        #     response_format="mp3",  # opus for websocket bytes transfer
-        #     input=sentence,
-        # ) as response:
-        #     for chunk in response.iter_bytes(chunk_size=4096):
-        #         # await websocket.send_bytes(chunk)
-        #         audio_buffer.write(chunk)
-        #     audio_buffer.seek(0)
+        with self.client.audio.speech.with_streaming_response.create(
+            model="kokoro",
+            voice=self.speaker_lookup[speaker],
+            response_format="mp3",  # opus for websocket bytes transfer
+            input=sentence,
+        ) as response:
+            for chunk in response.iter_bytes(chunk_size=4096):
+                # await websocket.send_bytes(chunk)
+                audio_buffer.write(chunk)
+            audio_buffer.seek(0)
 
         return audio_buffer
 

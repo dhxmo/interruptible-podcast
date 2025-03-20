@@ -87,10 +87,9 @@ function App() {
         if (!isPlayingRef.current && !isHandleInterruption.current) {
           playNext();
         }
-
-        // ⚠️ Re-check if the buffer needs topping up:
-        // preloadNext(socketRef.current);
-      } else if (message.action === "interruption_tts_response") {
+      }
+      // --- handle interruption
+      else if (message.action === "interruption_tts_response") {
         isPlayingRef.current = false;
 
         const binaryAudio = atob(message.audio);
@@ -104,23 +103,11 @@ function App() {
         console.log("received audio from interruption_tts_response");
 
         interruptionQueueRef.current.push(audio);
-        // audio.onended = () => handleInterruptionAudioEnded();
-
-        console.log(
-          "checking if something already playing::",
-          isPlayingRef.current
-        );
 
         // If not playing anything currently, start playing interruption response
         if (isHandleInterruption.current) {
-          console.log("play handle interruption");
+          console.log("playing interruption audio");
           playInterruptionQueue();
-
-          console.log(
-            "once doing handling interruption, reset flags. hopefully replay playblack"
-          );
-          isHandleInterruption.current = false;
-          playNext();
         }
       } else if (message.action === "error") {
         console.error("TTS server error:", message.message);
@@ -271,6 +258,14 @@ function App() {
       audioRef.current = nextAudio;
       isPlayingRef.current = true;
       nextAudio.play();
+
+      nextAudio.onended = () => {
+        isHandleInterruption.current = false;
+        console.log(
+          "once doing handling interruption, reset flags. hopefully replay playblack"
+        );
+        playNext();
+      };
     }
   };
 
