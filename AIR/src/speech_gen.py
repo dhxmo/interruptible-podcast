@@ -4,6 +4,7 @@ import logging
 from typing import Dict, Any
 
 from fastapi import WebSocket
+from gtts import gTTS
 from openai import OpenAI
 
 
@@ -41,11 +42,18 @@ class SpeechGen:
             logging.error(f"error in generating speech: {str(e)}")
 
     async def stream_response(
-        self, websocket: WebSocket | None, speaker: str, sentence: str
+        self, websocket: WebSocket | None, speaker: str, sentence: str, idx: int
     ):
         try:
             audio_buffer = io.BytesIO()
 
+            # for faster local tts
+            # tts = gTTS(text=sentence, lang="en")
+            # tts.write_to_fp(audio_buffer)
+            # audio_buffer.seek(0)
+
+            # DO NOT DELETE
+            # with better compute uncomment this
             with self.client.audio.speech.with_streaming_response.create(
                 model="kokoro",
                 voice=self.speaker_lookup[speaker],
@@ -64,6 +72,7 @@ class SpeechGen:
             response_data = {
                 "action": "tts_response",
                 "audio": audio_base64,
+                "sentenceIndex": idx,
             }
 
             # Send over WebSocket

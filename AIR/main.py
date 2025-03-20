@@ -145,9 +145,10 @@ async def websocket_endpoint(websocket: WebSocket):
                 elif data.get("action") == "tts":
                     host = data.get("host")
                     dialogue = data.get("dialogue")
+                    idx = data.get("idx")
 
                     try:
-                        await tts.stream_response(websocket, host, dialogue)
+                        await tts.stream_response(websocket, host, dialogue, idx)
                     except Exception as e:
                         error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)

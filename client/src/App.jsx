@@ -7,16 +7,23 @@ function App() {
   const socketRef = useRef(null);
 
   const [dialogues, setDialogues] = useState([]); // New state for parsed dialogues
-  const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1); // -1 is none playing
+  const dialoguesRef = useRef([]);
+  // const [currentSentenceIndex, setCurrentSentenceIndex] = useState(-1); // -1 is none playing
 
-  // --- playback
-  const audioRef = useRef(null);
-  const [startPlayback, setStartPlayback] = useState(false);
-  const [audioQueue, setAudioQueue] = useState([]);
+  // // --- playback
+  // const audioRef = useRef(null);
+  // const [preloadBuffer, setPreloadBuffer] = useState(0);
+  // const [startPlayback, setStartPlayback] = useState(false);
+  // const [audioQueue, setAudioQueue] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPlayerView, setShowPlayerView] = useState(false);
-  const [responseText, setResponseText] = useState("");
-  const [handleInterruption, setHandleInterruption] = useState(false);
+  // const [responseText, setResponseText] = useState("");
+  // const [handleInterruption, setHandleInterruption] = useState(false);
+
+  const currentIndexRef = useRef(0);
+  const audioQueueRef = useRef([]); // will store Audio objects
+  const isPlayingRef = useRef(false);
+  const audioRef = useRef(null); // currently playing audio
 
   // sockets
   useEffect(() => {
@@ -27,51 +34,7 @@ function App() {
     };
 
     socketRef.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-
-      // -- store convo script locally
-      if (message.action == "convo_transcript") {
-        const newText = message.transcript;
-        setResponseText(newText);
-        localStorage.setItem("responseText", newText);
-        setIsLoading(false);
-
-        parseDialogues(newText); // Parse new text when received. save to dialogue
-
-        console.log("set 0 index and start playback");
-        setCurrentSentenceIndex(0); // Start with first sentence
-        setStartPlayback(true); // start playback -- playback useEffect to send to tts server
-      }
-      // -- audio parse and playback
-      else if (message.action === "tts_response") {
-        // Convert base64 audio back to binary
-        const binaryAudio = atob(message.audio);
-
-        // Convert binary string to Uint8Array
-        const bytes = new Uint8Array(binaryAudio.length);
-        for (let i = 0; i < binaryAudio.length; i++) {
-          bytes[i] = binaryAudio.charCodeAt(i);
-        }
-
-        // Create audio blob
-        const audioBlob = new Blob([bytes], { type: "audio/mp3" });
-
-        // Add to queue with correct index
-        setAudioQueue(
-          (prevQueue) => [
-            ...prevQueue,
-            {
-              blob: audioBlob,
-              // sentenceIndex: message.sentenceIndex,
-            },
-          ]
-          // .sort((a, b) => a.sentenceIndex - b.sentenceIndex)
-        ); // Keep queue ordered
-      } else if (message.action === "error") {
-        console.error("TTS server error:", message.message);
-      }
-
-      setShowPlayerView(true);
+      handleSocketMessage(event);
     };
 
     socketRef.current.onerror = (error) => {
@@ -83,6 +46,68 @@ function App() {
       socketRef.current?.close();
     };
   }, []);
+
+  function handleSocketMessage(event) {
+    try {
+      const message = JSON.parse(event.data);
+
+      // -- store convo script locally
+      if (message.action == "convo_transcript") {
+        const newText = message.transcript;
+        localStorage.setItem("responseText", newText);
+        setIsLoading(false);
+
+        console.log("dialogue len", dialogues.length);
+        parseDialogues(newText); // Parse new text when received. save to dialogue
+      }
+      // -- audio parse and playback
+      else if (message.action === "tts_response") {
+        console.log("audio size: ", message.audio.length);
+        if (!message.audio || message.audio.length < 100) {
+          console.error("Received empty or invalid audio payload", message);
+          return;
+        }
+
+        // Convert base64 audio back to binary
+        const binaryAudio = atob(message.audio);
+
+        // Convert binary string to Uint8Array
+        const bytes = new Uint8Array(binaryAudio.length);
+        for (let i = 0; i < binaryAudio.length; i++) {
+          bytes[i] = binaryAudio.charCodeAt(i);
+        }
+
+        // Create audio blob and add to queue
+        const audioBlob = new Blob([bytes], { type: "audio/mp3" });
+        const audio = new Audio(URL.createObjectURL(audioBlob));
+        audioQueueRef.current.push(audio);
+
+        audio.onended = () => handleAudioEnded();
+
+        // If nothing is playing, start playback
+        if (!isPlayingRef.current) {
+          playNext();
+        }
+
+        preloadNext(socketRef.current);
+      } else if (message.action === "error") {
+        console.error("TTS server error:", message.message);
+      }
+
+      setShowPlayerView(true);
+    } catch (err) {
+      "error in handle socket msg", err.message;
+    }
+  }
+
+  // on setting dialogues for the first time, begin:::
+  useEffect(() => {
+    dialoguesRef.current = dialogues;
+
+    if (dialogues.length > 0) {
+      preloadNext(socketRef.current);
+    }
+  }, [dialogues]);
 
   // Parse dialogue text into [speaker, dialogue] pairs
   // each dialogue is broken up into individual sentence for faster tts
@@ -111,224 +136,112 @@ function App() {
         }
       });
     });
-
     setDialogues(parsedDialogues);
   };
 
-  // --- convo playback useEffect
-  // send to tts server for tts
-  useEffect(() => {
-    // works
-    if (startPlayback && currentSentenceIndex >= 0) {
-      const [host, dialogue] = dialogues[currentSentenceIndex];
-      console.log("playing ------------", host, dialogue);
-      if (
-        socketRef.current &&
-        socketRef.current.readyState === WebSocket.OPEN
-      ) {
-        socketRef.current.send(
-          JSON.stringify({
-            action: "tts",
-            host,
-            dialogue,
-          })
-        );
-      }
-    }
-  }, [startPlayback, currentSentenceIndex, dialogues]);
+  function preloadNext(socket) {
+    while (
+      currentIndexRef.current < dialoguesRef.current.length &&
+      audioQueueRef.current.length < 2 &&
+      socket?.readyState === WebSocket.OPEN
+    ) {
+      const [host, dialogue] = dialoguesRef.current[currentIndexRef.current];
+      console.log("preloading", host, dialogue);
 
-  // -- audio playback useEffect
-  // if audio in queue, then show visualizer and play
-  useEffect(() => {
-    // --- this help spreload, but skips a few sentences. let's figure out how to tackle this
-    // if (audioQueue.length === 0 && !handleInterruption) {
-    //   // Send two successive indices if queue is empty
-    //   setCurrentSentenceIndex((prevIndex) => {
-    //     const nextIndex = prevIndex + 1;
-    //     if (nextIndex < dialogues.length) {
-    //       // Schedule the second index to be sent after a short delay
-    //       setTimeout(() => {
-    //         setCurrentSentenceIndex((prevIndex) => {
-    //           const secondNextIndex = prevIndex + 1;
-    //           if (secondNextIndex < dialogues.length) {
-    //             console.log(
-    //               "Sending second dialogue:",
-    //               dialogues[secondNextIndex]
-    //             );
-    //           }
-    //           return secondNextIndex;
-    //         });
-    //       }, 100); // Small delay to ensure state updates properly
-    //     } else {
-    //       console.log("All dialogues have been played.");
-    //       setStartPlayback(false); // Stop playback if all dialogues are done
-    //     }
-    //     return nextIndex;
-    //   });
-    // } else
-
-    console.log("audio q length", audioQueue.length);
-
-    if (audioQueue.length > 0 && !audioRef.current) {
-      // --- load audio from Q and play with context
-      const audioItem = audioQueue[0];
-      const audioUrl = URL.createObjectURL(audioItem.blob);
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-
-      // Audio visualization setup
-      const audioContext = new AudioContext();
-      const source = audioContext.createMediaElementSource(audio);
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      source.connect(analyser);
-      analyser.connect(audioContext.destination);
-
-      const canvas = document.querySelector("canvas");
-      const ctx = canvas.getContext("2d");
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      const draw = () => {
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
-
-        ctx.fillStyle = "rgb(0, 0, 0)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        const barWidth = (canvas.width / bufferLength) * 2.5;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-          const barHeight = dataArray[i];
-          ctx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
-          ctx.fillRect(
-            x,
-            canvas.height - barHeight / 2,
-            barWidth,
-            barHeight / 2
-          );
-          x += barWidth + 1;
-        }
-      };
-
-      audio
-        .play()
-        .then(() => {
-          draw();
-          audio.onended = () => {
-            // clear blob from audioQueue to make room for next
-            setAudioQueue((prevQueue) => {
-              const updatedQueue = prevQueue.slice(1);
-              console.log(`Updated queue length: ${updatedQueue.length}`);
-              return updatedQueue;
-            });
-            URL.revokeObjectURL(audioUrl);
-            audioRef.current = null; // Clear the reference
-
-            console.log(
-              "after clean up : audio queue length",
-              audioQueue.length
-            );
-
-            // if handling interruption -> play interruption audio
-            // else play next in line
-            if (!handleInterruption) {
-              console.log("not followed by an interruption");
-              // Move to the next dialogue
-              setCurrentSentenceIndex((prevIndex) => {
-                const nextIndex = prevIndex + 1;
-                console.log("indices", prevIndex, nextIndex);
-
-                if (nextIndex < dialogues.length) {
-                  console.log("Moving to next dialogue:", dialogues[nextIndex]);
-                } else {
-                  console.log("All dialogues have been played.");
-                  setStartPlayback(false); // Stop playback if all dialogues are done
-                }
-                return nextIndex;
-              });
-            } else {
-              setHandleInterruption(false);
-              console.log("interruption handled");
-            }
-          };
+      currentIndexRef.current += 1;
+      socket.send(
+        JSON.stringify({
+          action: "tts",
+          host,
+          dialogue,
         })
-        .catch((error) => console.error("Audio playback error:", error));
-    } else if (audioQueue.length > 0 && audioRef.current) {
-      console.log("Skipping playback: audio already playing");
-    } else if (audioQueue.length === 0 && !audioRef.current) {
-      console.log("Skipping playback: queue empty");
+      );
     }
-  }, [audioQueue, handleInterruption, dialogues]);
+  }
+
+  const playNext = () => {
+    if (audioQueueRef.current.length > 0) {
+      const nextAudio = audioQueueRef.current.shift();
+      audioRef.current = nextAudio;
+      isPlayingRef.current = true;
+      nextAudio.play();
+    } else {
+      isPlayingRef.current = false;
+    }
+  };
+
+  const handleAudioEnded = () => {
+    isPlayingRef.current = false;
+    playNext(); // Play the next audio in the queue
+  };
 
   // recording user interruption and sending to server
-  const { status, startRecording, stopRecording, error } =
-    useReactMediaRecorder({
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: false, // Adjust based on testing
-        autoGainControl: true,
-        sampleRate: 16000,
-      },
-      blobPropertyBag: { type: "audio/webm" },
-      onStart: () => {
-        // handle interruptions
-        setHandleInterruption(true);
+  // const { status, startRecording, stopRecording, error } =
+  //   useReactMediaRecorder({
+  //     audio: {
+  //       echoCancellation: true,
+  //       noiseSuppression: false, // Adjust based on testing
+  //       autoGainControl: true,
+  //       sampleRate: 16000,
+  //     },
+  //     blobPropertyBag: { type: "audio/webm" },
+  //     onStart: () => {
+  //       // handle interruptions
+  //       setHandleInterruption(true);
 
-        // Stop the currently playing audio
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current.currentTime = 0; // Reset playback position
-          audioRef.current = null; // Clear the reference
-        }
+  //       // Stop the currently playing audio
+  //       if (audioRef.current) {
+  //         audioRef.current.pause();
+  //         audioRef.current.currentTime = 0; // Reset playback position
+  //         audioRef.current = null; // Clear the reference
+  //       }
 
-        // Clear the audio queue to prevent playback of other media
-        setAudioQueue([]);
-        // send handle interruption text to server
-        if (
-          socketRef.current &&
-          socketRef.current.readyState === WebSocket.OPEN
-        ) {
-          socketRef.current.send(
-            JSON.stringify({
-              action: "tts",
-              host: "Host1",
-              dialogue: "Whats on your mind?",
-            })
-          );
-        }
-      },
-      onStop: (blobUrl, blob) => {
-        // Send to server
-        // TODO: fetch next sentence from the responseText
-        if (
-          socketRef.current &&
-          socketRef.current.readyState === WebSocket.OPEN
-        ) {
-          socketRef.current.send(
-            JSON.stringify({
-              action: "init_interruption",
-              next_sentence: "...",
-            })
-          );
-          socketRef.current.send(blob);
-        }
-      },
-    });
+  //       // Clear the audio queue to prevent playback of other media
+  //       setAudioQueue([]);
+  //       // send handle interruption text to server
+  //       if (
+  //         socketRef.current &&
+  //         socketRef.current.readyState === WebSocket.OPEN
+  //       ) {
+  //         socketRef.current.send(
+  //           JSON.stringify({
+  //             action: "tts",
+  //             host: "Host1",
+  //             dialogue: "Whats on your mind?",
+  //           })
+  //         );
+  //       }
+  //     },
+  //     onStop: (blobUrl, blob) => {
+  //       // Send to server
+  //       // TODO: fetch next sentence from the responseText
+  //       if (
+  //         socketRef.current &&
+  //         socketRef.current.readyState === WebSocket.OPEN
+  //       ) {
+  //         socketRef.current.send(
+  //           JSON.stringify({
+  //             action: "init_interruption",
+  //             next_sentence: "...",
+  //           })
+  //         );
+  //         socketRef.current.send(blob);
+  //       }
+  //     },
+  //   });
 
-  // Log recording status and errors
-  useEffect(() => {
-    console.log("Recording status:", status);
-    if (error) console.error("Recording error:", error);
-  }, [status, error]);
+  // // Log recording status and errors
+  // useEffect(() => {
+  //   console.log("Recording status:", status);
+  //   if (error) console.error("Recording error:", error);
+  // }, [status, error]);
 
   const handleTalkClick = () => {
-    if (status === "idle" || status === "stopped") {
-      startRecording();
-    } else if (status === "recording") {
-      stopRecording();
-    }
+    // if (status === "idle" || status === "stopped") {
+    //   startRecording();
+    // } else if (status === "recording") {
+    //   stopRecording();
+    // }
   };
 
   const handleSubmit = (e) => {
