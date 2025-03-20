@@ -4,7 +4,7 @@ import unittest
 from AIR.src.deep_research.search import DeepResearcher
 from AIR.src.manager import ClientManager
 from AIR.src.pod_gen.generate import PodGenStandard
-from AIR.src.speech_gen import SpeechGen
+from AIR.src.tts.speech_gen import SpeechGen
 from AIR.src.whisper import FasterWhisperEngine
 from AIR.tests.constants import podcast_script
 

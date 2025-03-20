@@ -1,19 +1,18 @@
 import argparse
 import asyncio
-import base64
-import io
 import json
+from contextlib import asynccontextmanager
 from io import BytesIO
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from gtts import gTTS
+from starlette.websockets import WebSocketDisconnect
 
 from tests.constants import podcast_script
 from src.deep_research.search import DeepResearcher
 from src.pod_gen.generate import PodGenStandard
-from src.speech_gen import SpeechGen
+from src.tts.speech_gen import SpeechGen
 from src.whisper import FasterWhisperEngine
 
 dr = DeepResearcher()
@@ -22,7 +21,12 @@ stt = FasterWhisperEngine()
 tts = SpeechGen()
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -118,10 +122,6 @@ async def websocket_endpoint(websocket: WebSocket):
     global sentenceIndex, nextSentence, tts
 
     await websocket.accept()
-
-    # start worker on websocket connect
-    asyncio.create_task(tts.tts_worker(websocket))
-
     try:
         while True:
             message = await websocket.receive()
@@ -134,7 +134,8 @@ async def websocket_endpoint(websocket: WebSocket):
                 # TODO: generate with transcript + nextSentence -> qwen -> interrupt_transcript
                 interruption_text = "this is me handling the interruption"
 
-                await tts.add_tts_task(
+                await tts.stream_response(
+                    websocket=websocket,
                     action="interruption_tts_response",
                     speaker="Host2",
                     sentence=interruption_text,
@@ -158,8 +159,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     idx = data.get("idx")
 
                     try:
-                        print("adding task to tts task queue")
-                        await tts.add_tts_task(
+                        await tts.stream_response(
+                            websocket=websocket,
                             action="tts_response",
                             speaker=host,
                             sentence=dialogue,
@@ -172,10 +173,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 # handle interruption
                 elif data.get("action") == "init_interruption":
                     nextSentence = data.get("next_sentence")
-
+    except WebSocketDisconnect:
+        print("WebSocket disconnected cleanly in main.")
     except Exception as e:
         print(f"Error: {e}")
     finally:
+        print("WebSocket endpoint exiting. Cancelling worker.")
         await websocket.close()
 
 
@@ -188,4 +191,5 @@ if __name__ == "__main__":
         port=args.port,
         reload=True,
         log_level="info",
+        timeout_keep_alive=120,
     )
