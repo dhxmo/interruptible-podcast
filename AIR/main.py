@@ -1,4 +1,5 @@
 import argparse
+import asyncio
 import base64
 import io
 import json
@@ -117,6 +118,10 @@ async def websocket_endpoint(websocket: WebSocket):
     global sentenceIndex, nextSentence, tts
 
     await websocket.accept()
+
+    # start worker on websocket connect
+    asyncio.create_task(tts.tts_worker(websocket))
+
     try:
         while True:
             message = await websocket.receive()
@@ -129,7 +134,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 # TODO: generate with transcript + nextSentence -> qwen -> interrupt_transcript
                 interruption_text = "this is me handling the interruption"
 
-                await tts.stream_response(websocket, "Host2", interruption_text)
+                await tts.add_tts_task(
+                    action="interruption_tts_response",
+                    speaker="Host2",
+                    sentence=interruption_text,
+                    idx=0,
+                )
             elif "text" in message:
                 data = json.loads(message["text"])
 
@@ -148,7 +158,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     idx = data.get("idx")
 
                     try:
-                        await tts.stream_response(websocket, host, dialogue, idx)
+                        print("adding task to tts task queue")
+                        await tts.add_tts_task(
+                            action="tts_response",
+                            speaker=host,
+                            sentence=dialogue,
+                            idx=idx,
+                        )
                     except Exception as e:
                         error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)

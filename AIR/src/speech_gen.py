@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import io
 import logging
@@ -16,34 +17,44 @@ class SpeechGen:
             "Host1": "am_puck(1)+am_michael(1.5)",
             "Host2": "af_bella(1)+af_alloy(1.5)",
         }
+        self.normal_queue = asyncio.Queue()
+        self.priority_queue = asyncio.Queue()
 
-    async def generate_speech(
-        self, websocket: WebSocket | None, session: Dict[str, Any], podcast_script: str
-    ):
-        try:
-            lines = [
-                line.strip() for line in podcast_script.strip().split("\n") if line
-            ]
-            dialogues = [
-                (line.split(":")[0], line.split(":")[1].strip()) for line in lines
-            ]
+    async def tts_worker(self, websocket: WebSocket):
+        """loop adds to specific queue and processes the job"""
+        while True:
+            # First check priority queue
+            if not self.priority_queue.empty():
+                print("getting priorty queue")
+                job = await self.priority_queue.get()
+            else:
+                print("getting normal queue")
+                job = await self.normal_queue.get()
 
-            for sentence_idx, (speaker, sentence) in enumerate(dialogues):
-                if speaker not in self.speaker_lookup:
-                    continue
+            await self.process_tts_job(websocket, job)
 
-                session["current_sentence_idx"] = sentence_idx
+    async def add_tts_task(self, action, speaker, sentence, idx):
+        job = {
+            "action": action,
+            "speaker": speaker,
+            "sentence": sentence,
+            "idx": idx,
+        }
+        if action == "interruption_tts_response":
+            print("adding to priority queue")
+            await self.priority_queue.put(job)
+        else:
+            print("adding to normal queue")
+            await self.normal_queue.put(job)
 
-                # TODO: pass websocket and stream OPUS response back to client
-                await self.stream_response(
-                    websocket, self.speaker_lookup[speaker], sentence
-                )
-        except Exception as e:
-            logging.error(f"error in generating speech: {str(e)}")
+    async def process_tts_job(self, websocket: WebSocket | None, job: Dict[str, str]):
+        action = job["action"]
+        speaker = job["speaker"]
+        sentence = job["sentence"]
+        idx = job["idx"]
 
-    async def stream_response(
-        self, websocket: WebSocket | None, speaker: str, sentence: str, idx: int
-    ):
+        print("processing sentence", sentence)
+
         try:
             audio_buffer = io.BytesIO()
 
@@ -70,7 +81,7 @@ class SpeechGen:
 
             # Create JSON response
             response_data = {
-                "action": "tts_response",
+                "action": action,
                 "audio": audio_base64,
                 "sentenceIndex": idx,
             }

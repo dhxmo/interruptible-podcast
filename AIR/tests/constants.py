@@ -11,5 +11,5 @@ Host1: That’s right. The combination of topological protection and improved pr
 Host2: Absolutely! Scaling up is always tricky, but with these advancements, it might be more feasible than ever before. 
 Host1: Oh, that sounds fascinating! 
 Host2: Yes, exactly. By training on large datasets, these models can predict optimal parameters for quantum operations, reducing errors and improving performance. 
-Host1: And what about the innovative materials you mentioned? I think they’re talking about new materials that could host stable topological states or better qubit architectures. .
+Host1: And what about the innovative materials you mentioned? I think they’re talking about new materials that could host stable topological states or better qubit architectures.
            """
