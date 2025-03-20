@@ -21,7 +21,7 @@ function App() {
   // --- interruption related
   const isHandleInterruption = useRef(false);
   const interruptionQueueRef = useRef([]);
-  // const resumeIndexRef = useRef(null);
+  const resumeIndexRef = useRef(0);
 
   // sockets
   useEffect(() => {
@@ -180,6 +180,7 @@ function App() {
       audioRef.current = nextAudio;
       isPlayingRef.current = true;
       nextAudio.play();
+      resumeIndexRef.current += 1; // update each time audio plays from the script. running counter for current play index to send for interruption
     } else {
       isPlayingRef.current = false;
     }
@@ -210,7 +211,7 @@ function App() {
           socketRef.current.send(
             JSON.stringify({
               action: "init_interruption",
-              next_sentence: dialoguesRef.current[currentIndexRef.current],
+              next_sentence: dialoguesRef.current[resumeIndexRef.current],
             })
           );
           socketRef.current.send(blob);

@@ -16,16 +16,14 @@ class Config:
     # only for testing on local CPU
     local_llm = "qwen2.5:0.5b"
     local_llm_reasoning = "qwen2.5:0.5b"
-    local_llm_podcast_gen = (
-        # "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q4_K_M"
-        "hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q4_K_M"
-    )
+    local_llm_podcast_gen = "qwen2.5:0.5b"
 
     # for testing on remote
     # local_llm = "qwen2.5:latest"
     # local_llm_reasoning = "deepseek-r1:latest"
     # local_llm_podcast_gen = (
     #     "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0"
+    #     "hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q4_K_M"
     # )
 
     search_api = "duckduckgo"
@@ -54,7 +52,7 @@ class Config:
         "wild styles—total madness meets gritty hype—for max bro-energy."
     )
 
-    faster_whisper_model = "distil-medium.en"
+    faster_whisper_model = "medium.en"
     # distil-medium.en : 280ms
     # distil-large-v2 : 300 ms
     # distil-large-v3: 300ms

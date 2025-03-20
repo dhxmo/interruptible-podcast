@@ -3,10 +3,14 @@ import re
 from typing import Dict, Any
 
 from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import ChatOllama
-
 from src.config import Config
 from src.pod_gen.clean import ContentCleanerMixin
+from src.pod_gen.pg_templates import (
+    interruption_system_instruction,
+    interruption_user_instruction,
+)
 from src.pod_gen.pg_templates import podgen_instruction, user_instruction
 
 
@@ -14,8 +18,11 @@ class PodGenStandard:
     def __init__(self):
         self.llm = ChatOllama(
             base_url=Config.ollama_base_url,
-            model=Config.local_llm_reasoning,
-            temperature=0.2,
+            model=Config.local_llm_podcast_gen,
+            temperature=0.3,
+        )
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name=Config.HF_EMBEDDINGS_MODEL_NAME
         )
 
     async def podgen(
@@ -50,9 +57,7 @@ class PodGenStandard:
             r"<think>.*?</think>\n?", "", pod_script, flags=re.DOTALL
         ).strip()
 
-        logging.info(f"=====clean script:: \n\n {clean_script}")
-
-        session["podscript_script"] = clean_script
+        return clean_script
 
     @staticmethod
     def _clean_tss_markup(input_text: str, additional_tags=None) -> str:
@@ -84,3 +89,26 @@ class PodGenStandard:
         except Exception as e:
             logging.error(f"Error cleaning TSS markup: {str(e)}")
             return input_text
+
+    async def interruption_gen(
+        self,
+        user_query: str,
+        session: Dict[str, Any],
+    ) -> str:
+        """tried RAG didn't work too well. ideally that's what should be used"""
+
+        logging.info("handling interruption gen")
+
+        result = await self.llm.ainvoke(
+            [
+                SystemMessage(content=interruption_system_instruction),
+                HumanMessage(
+                    content=interruption_user_instruction.format(
+                        question=user_query,
+                        running_summary=session["running_summary"],
+                    )
+                ),
+            ]
+        )
+
+        return result.content

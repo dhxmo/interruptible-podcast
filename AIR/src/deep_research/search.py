@@ -100,9 +100,6 @@ class DeepResearcher:
 
         talking_points = await self.generate_talking_points(session)
 
-        logging.info(f"\n\ntalking points generated::: {talking_points}")
-        logging.info(f"\n\nrunning summary generated::: {session['running_summary']}")
-
         return talking_points
 
     async def generate_query(self, user_input: str) -> str | None:
@@ -384,7 +381,6 @@ class DeepResearcher:
                 client_session=client_session, TARGET_URL=TARGET_URL
             )
             if len(fetched_content) > 0:
-                logging.info("not empty content")
                 # add to vectorDB for sessionid for later questioning knowledge
                 document = Document(
                     page_content=fetched_content, metadata={"source": TARGET_URL}

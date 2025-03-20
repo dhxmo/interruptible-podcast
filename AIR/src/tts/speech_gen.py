@@ -25,11 +25,13 @@ class SpeechGen:
         self.normal_processing_delay = 1.0
 
     async def add_normal_request(self, websocket, action, speaker, sentence, idx):
+        logging.info("adding normal request")
         await self.normal_queue.put((websocket, action, speaker, sentence, idx))
         if not self.processing:
             await self.start_processing()
 
     async def add_priority_request(self, websocket, action, speaker, sentence, idx):
+        logging.info("adding priority request")
         await self.priority_queue.put((websocket, action, speaker, sentence, idx))
         if not self.processing:
             await self.start_processing()
@@ -47,8 +49,10 @@ class SpeechGen:
             while True:
                 # Always check priority queue first
                 if not self.priority_queue.empty():
+                    logging.info("fetching from the priority queue")
                     request = await self.priority_queue.get()
                 elif not self.normal_queue.empty():
+                    logging.info("fetching from the normal queue")
                     request = await self.normal_queue.get()
                     # Add delay before processing each normal request
                     # This gives time for priority requests to arrive
@@ -67,25 +71,27 @@ class SpeechGen:
 
     def generate_tts_audio(self, speaker: str, sentence: str) -> BytesIO:
         """convert text to audio buffer"""
+
+        logging.info("generating tts audio")
+
         audio_buffer = io.BytesIO()
 
         # uncomment for low cpu usage testing
-        tts = gTTS(text=sentence, lang="en")
-        tts.write_to_fp(audio_buffer)
-        audio_buffer.seek(0)
+        # tts = gTTS(text=sentence, lang="en")
+        # tts.write_to_fp(audio_buffer)
+        # audio_buffer.seek(0)
 
         # DO NOT DELETE
         # with better compute uncomment this
-        # with self.client.audio.speech.with_streaming_response.create(
-        #     model="kokoro",
-        #     voice=self.speaker_lookup[speaker],
-        #     response_format="mp3",  # opus for websocket bytes transfer
-        #     input=sentence,
-        # ) as response:
-        #     for chunk in response.iter_bytes(chunk_size=4096):
-        #         # await websocket.send_bytes(chunk)
-        #         audio_buffer.write(chunk)
-        #     audio_buffer.seek(0)
+        with self.client.audio.speech.with_streaming_response.create(
+            model="kokoro",
+            voice=self.speaker_lookup[speaker],
+            response_format="mp3",  # opus for websocket bytes transfer
+            input=sentence,
+        ) as response:
+            for chunk in response.iter_bytes(chunk_size=4096):
+                audio_buffer.write(chunk)
+            audio_buffer.seek(0)
 
         return audio_buffer
 
@@ -98,6 +104,7 @@ class SpeechGen:
         idx: int,
     ):
         try:
+            logging.info("handling stream response")
             audio_buffer = self.generate_tts_audio(speaker, sentence)
 
             # Convert audio buffer to base64

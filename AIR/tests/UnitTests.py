@@ -4,9 +4,9 @@ import unittest
 from AIR.src.deep_research.search import DeepResearcher
 from AIR.src.manager import ClientManager
 from AIR.src.pod_gen.generate import PodGenStandard
+from AIR.src.pod_gen.pg_templates import rag_flow_prompt
 from AIR.src.tts.speech_gen import SpeechGen
 from AIR.src.whisper import FasterWhisperEngine
-from AIR.tests.constants import podcast_script
 
 
 class AIRTestCasesUnit(unittest.TestCase):
@@ -65,20 +65,12 @@ class AIRTestCasesUnit(unittest.TestCase):
 
         self.cm.sessions[self.session_id]["running_summary"] = ""
 
-        await self.pg.podgen(
+        script = await self.pg.podgen(
             self.cm.sessions[self.session_id],
             talking_points,
         )
 
-        self.assertGreater(
-            len(self.cm.sessions[self.session_id]["podscript_script"]), 0
-        )
-
-    # --- tts
-    def test_tts(self):
-        self.tts.generate_speech(
-            None, self.cm.sessions[self.session_id], podcast_script
-        )
+        self.assertGreater(len(script), 0)
 
 
 if __name__ == "__main__":
