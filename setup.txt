@@ -32,6 +32,16 @@ ollama run qwen2.5
 ollama run deepseek-r1
 ollama run hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q8_0
 
+// ---- client
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+nvm install 20.14.0
+nvm use 20.14.0
+nvm alias default 20.14.0
+
+npm install --global yarn
 
 ===============================================================
 ollama run hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0
