@@ -14,23 +14,24 @@ class Config:
     research_loop_count: int = 1
 
     # only for testing on local CPU
-    local_llm = "qwen2.5:0.5b"
-    local_llm_reasoning = "qwen2.5:0.5b"
-    local_llm_podcast_gen = "qwen2.5:0.5b"
+    # local_llm = "qwen2.5:0.5b"
+    # local_llm_reasoning = "qwen2.5:0.5b"
+    # local_llm_podcast_gen = "qwen2.5:0.5b"
+    # ollama_base_url = "http://localhost:11434/"
 
     # for testing on remote
-    # local_llm = "qwen2.5:latest"
-    # local_llm_reasoning = "deepseek-r1:latest"
-    # local_llm_podcast_gen = (
-    #     "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0"
-    #     "hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q4_K_M"
-    # )
+    local_llm = "qwen2.5:latest"
+    local_llm_reasoning = "deepseek-r1:latest"
+    local_llm_podcast_gen = (
+        # "hf.co/SentientAGI/Dobby-Mini-Unhinged-Llama-3.1-8B_GGUF:Q8_0"
+        "hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q8_0"
+    )
 
     search_api = "duckduckgo"
     max_tokens_per_resource = 1000
     search_max_results = 1
     fetch_full_page = True
-    ollama_base_url = "http://localhost:11434/"
+    ollama_base_url = "http://.../"
     uuid = id_generator(7)
     HF_EMBEDDINGS_MODEL_NAME = "all-MiniLM-L6-v2"
     INDEX_PERSIST_DIRECTORY = "./data/chromadb"
@@ -57,3 +58,5 @@ class Config:
     # distil-large-v2 : 300 ms
     # distil-large-v3: 300ms
     # large-v2 : 350ms
+
+    xtts_server_endpoint = "http:.../..."

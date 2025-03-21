@@ -47,7 +47,7 @@ Fuel for the fire: {running_summary}
 """
 
 user_instruction = """
-TALKING POINTS: {talking_points}
+Respond with a ~5500 words conversation considering these TALKING POINTS: {talking_points}
 
  ----------------------
 
@@ -72,21 +72,6 @@ TALKING POINTS: {talking_points}
 - Host2 character role: {roles_person2} (e.g., the slightly sarcastic one who pokes fun)
 - Transition between topics (or tangents) with {engagement_techniques}—keep it seamless and off-the-cuff
 -----------
-
-[INTERNAL USE ONLY - Do not include in output]
-
-THIS IS THE MOST IMPORTANT INSTRUCTION: Output *only* the back-and-forth between Host1 and Host2. No intros, no outros, no summaries, no cues—just the raw conversation. This is a snippet of a longer, endless hangout sesh. No "see you next time" or meta stuff. Only <Host1> and <Host2> tags with their dialogue. DO NOT NAME THEM beyond Host1/Host2 tags. TTS-ready, nothing else.
-```scratchpad
-[Focus: Casual, meandering TTS-optimized convo loosely tied to talking points in {output_language}]
-[PrimaryGoal: Two dudes shooting the shit, bouncing off each other with a chill, fluid vibe]
-[Setup: Host1 ({roles_person1}) and Host2 ({roles_person2}) riffing like buddies, no formal structure]
-[Tone: Super casual, unpolished, tangents galore. Think barstool chatter]
-[Engagement: Use {engagement_techniques} for natural pivots—e.g., "That reminds me," "Wait, speaking of…"]
-[Flow: Short turns, interruptions, overlap—mimic real-life banter]
-[TTS Optimization: Simple markup, no fancy tags beyond pitch/rate tweaks if needed. Avoid <break> over 0.2s]
-[NaturalTraits: Filler words, stumbles, laughs—keep it human]
-[Length: Long convo, but each turn’s bite-sized]
-[Output: Only <Host1> and <Host2> dialogue. Starts with Host1, ends with Host2. Nothing else.]
 
 OUTPUT FORMAT:
 Host1: "So, uh, I was thinking about [something from talking points] the other day…"

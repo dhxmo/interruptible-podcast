@@ -4,6 +4,7 @@ __pycache__/
 server/
 AIR/tests/data/*
 AIR/data/*
+xTTS-server/voices/
 
 # vim swap files
 *.swp

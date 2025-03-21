@@ -1,0 +1,17 @@
+docker template  open port 11434 and 8000
+
+// ---- ollama
+curl -fsSL https://ollama.com/install.sh | sh
+export OLLAMA_HOST=0.0.0.0
+ollama serve
+
+ollama run qwen2.5
+ollama run deepseek-r1
+ollama run hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q8_0
+
+
+// --- xTTS server setup
+cd xTTS-server
+python -m venv venv && source venv/bin/activate
+pip install -r requirements
+python server.py

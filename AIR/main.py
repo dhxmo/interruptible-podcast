@@ -59,7 +59,10 @@ async def websocket_endpoint(websocket: WebSocket):
     global sentenceIndex, tts
 
     # make this more robust. add a connection manger
+    print("acepting conn")
     await websocket.accept()
+    print("accepted")
+
     session_id = cm.create_session()
 
     try:
@@ -121,8 +124,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     except Exception as e:
                         error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)
-    except WebSocketDisconnect:
-        logging.info("WebSocket disconnected cleanly in main.")
     except Exception as e:
         logging.error(f"Error: {e}")
     finally:
@@ -138,6 +139,5 @@ if __name__ == "__main__":
         host=args.host,
         port=args.port,
         reload=True,
-        log_level="info",
         timeout_keep_alive=120,
     )

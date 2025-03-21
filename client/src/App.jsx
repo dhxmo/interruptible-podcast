@@ -131,24 +131,32 @@ function App() {
       .filter((line) => line.trim())
       .map((line) => line.trim());
 
-    const sentenceRegex = /[^.!?]+[.!?]?/g; // Regex to break text into sentences
+    // --- split on punctuation based each sentence. can get jaggy
+    // const sentenceRegex = /[^.!?]+[.!?]?/g; // Regex to break text into sentences
+    // const parsedDialogues = [];
 
-    const parsedDialogues = [];
+    // lines.forEach((line) => {
+    //   const [speaker, ...dialogueParts] = line.split(":");
+    //   const dialogue = dialogueParts.join(":").trim();
 
-    lines.forEach((line) => {
-      const [speaker, ...dialogueParts] = line.split(":");
-      const dialogue = dialogueParts.join(":").trim();
+    //   // Split dialogue into sentences
+    //   const sentences = dialogue.match(sentenceRegex) || [dialogue];
 
-      // Split dialogue into sentences
-      const sentences = dialogue.match(sentenceRegex) || [dialogue];
+    //   sentences.forEach((sentence) => {
+    //     const trimmedSentence = sentence.trim();
+    //     if (trimmedSentence) {
+    //       parsedDialogues.push([speaker.trim(), trimmedSentence]);
+    //     }
+    //   });
+    // });
+    // setDialogues(parsedDialogues);
 
-      sentences.forEach((sentence) => {
-        const trimmedSentence = sentence.trim();
-        if (trimmedSentence) {
-          parsedDialogues.push([speaker.trim(), trimmedSentence]);
-        }
-      });
+    // -- split according to person
+    const parsedDialogues = lines.map((line) => {
+      const [speaker, ...dialogueParts] = line.split(":"); // Split at first colon
+      return [speaker, dialogueParts.join(":").trim()]; // Rejoin dialogue in case it contains colons
     });
+
     setDialogues(parsedDialogues);
   }
 
