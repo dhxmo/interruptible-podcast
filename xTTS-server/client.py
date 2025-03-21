@@ -4,16 +4,16 @@ import logging
 
 
 class Config:
-    xtts_server_endpoint = "http://localhost:8000/generate-audio/"
+    xtts_server_endpoint = "http://185.150.27.254:24039/generate-audio/"
 
 
 # Sample data
 sentence = "Hey, what's up?"
 speaker = "clint"  # Assuming this maps to a file path in speaker_lookup
-speaker_lookup = {"clint": "voices/clint.wav"}
+# speaker_lookup = {"clint": "voices/clint.wav"}
 
 # Prepare request parameters
-params = {"text": sentence, "speaker_wav": speaker_lookup[speaker], "language": "en"}
+params = {"text": sentence, "speaker": speaker, "language": "en"}
 
 # Buffer to hold the audio data
 audio_buffer = io.BytesIO()

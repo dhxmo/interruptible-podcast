@@ -249,7 +249,7 @@ function App() {
       isHandleInterruption.current = true;
 
       // Play custom interruption prompt and start recording after play
-      const interruptionPrompt = new Audio("/interruption_audio.mp3");
+      const interruptionPrompt = new Audio("/interruption_audio.wav");
       interruptionPrompt.onended = () => startRecording(); // start recording on interruption audio end
       interruptionPrompt.play();
     } else if (status === "recording") {
