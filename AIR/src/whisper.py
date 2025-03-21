@@ -13,8 +13,10 @@ class FasterWhisperEngine:
         model_size = Config.faster_whisper_model
         self.model = WhisperModel(
             model_size,
-            device="cuda" if torch.cuda.is_available() else "cpu",
-            compute_type="float16" if torch.cuda.is_available() else "int8",
+            # device="cuda" if torch.cuda.is_available() else "cpu",
+            # compute_type="float16" if torch.cuda.is_available() else "int8",
+            device="cpu",
+            compute="int8",
         )
 
     # TODO prod: stream transcribe instead of from file

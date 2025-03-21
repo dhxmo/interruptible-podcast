@@ -3,6 +3,7 @@ __pycache__/
 .env
 server/
 AIR/tests/data/*
+AIR/data/*
 
 # vim swap files
 *.swp

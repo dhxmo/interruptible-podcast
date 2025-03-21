@@ -6,7 +6,6 @@ from io import BytesIO
 
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 
 from src.deep_research.search import DeepResearcher
@@ -35,9 +34,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Serve static files
-app.mount("/web", StaticFiles(directory="web"), name="web")
 
 # -------------------------
 
@@ -125,17 +121,12 @@ async def websocket_endpoint(websocket: WebSocket):
                     except Exception as e:
                         error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)
-
-                # handle interruption
-                elif data.get("action") == "init_interruption":
-                    logging.info("adding interruption ")
-                    next_sentence = data.get("next_sentence")
     except WebSocketDisconnect:
-        print("WebSocket disconnected cleanly in main.")
+        logging.info("WebSocket disconnected cleanly in main.")
     except Exception as e:
-        print(f"Error: {e}")
+        logging.error(f"Error: {e}")
     finally:
-        print("WebSocket endpoint exiting. Cancelling worker.")
+        logging.info("WebSocket endpoint exiting. Cancelling worker.")
         await websocket.close()
 
 
