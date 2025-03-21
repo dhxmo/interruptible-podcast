@@ -14,33 +14,42 @@ from openai import OpenAI
 
 from src.config import Config
 
+logging.basicConfig(
+    level=logging.INFO,  # Set to INFO to see info logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],  # Output to console
+)
+logger = logging.getLogger(__name__)
+
 
 class SpeechGen:
     def __init__(self):
-        self.client = OpenAI(base_url="http://localhost:8880/v1", api_key="not-needed")
+        self.client = OpenAI(
+            base_url=Config.kokoro_server_endpoint, api_key="not-needed"
+        )
         self.speaker_lookup = {
             # kokoro
-            # "Host1": "am_puck(1)+am_michael(1.5)",
-            # "Host2": "am_eric(1)+am_onyx(1.6)",
+            "Host1": "am_puck(1)+am_michael(1.5)",
+            "Host2": "am_eric(1)+am_onyx(1.6)",
             # xtts
-            "Host1": "clint",
-            "Host2": "james",
+            # "Host1": "clint",
+            # "Host2": "james",
         }
         self.normal_queue = asyncio.Queue()
         self.priority_queue = asyncio.Queue()
         self.processing = False
         self.current_task: Optional[asyncio.Task] = None
         # How long to wait between processing each normal request (in seconds)
-        self.normal_processing_delay = 1.0
+        self.normal_processing_delay = 3.0
 
     async def add_normal_request(self, websocket, action, speaker, sentence, idx):
-        logging.info("adding normal request")
+        logger.info("adding normal request")
         await self.normal_queue.put((websocket, action, speaker, sentence, idx))
         if not self.processing:
             await self.start_processing()
 
     async def add_priority_request(self, websocket, action, speaker, sentence, idx):
-        logging.info("adding priority request")
+        logger.info("adding priority request")
         await self.priority_queue.put((websocket, action, speaker, sentence, idx))
         if not self.processing:
             await self.start_processing()
@@ -58,10 +67,10 @@ class SpeechGen:
             while True:
                 # Always check priority queue first
                 if not self.priority_queue.empty():
-                    logging.info("fetching from the priority queue")
+                    logger.info("fetching from the priority queue")
                     request = await self.priority_queue.get()
                 elif not self.normal_queue.empty():
-                    logging.info("fetching from the normal queue")
+                    logger.info("fetching from the normal queue")
                     request = await self.normal_queue.get()
                     # Add delay before processing each normal request
                     # This gives time for priority requests to arrive
@@ -73,7 +82,7 @@ class SpeechGen:
                 websocket, action, speaker, sentence, idx = request
                 await self.stream_response(websocket, action, speaker, sentence, idx)
         except Exception as e:
-            logging.error(f"Error processing TTS queue: {str(e)}")
+            logger.error(f"Error processing TTS queue: {str(e)}")
         finally:
             self.processing = False
             self.current_task = None
@@ -81,7 +90,7 @@ class SpeechGen:
     def generate_tts_audio(self, speaker: str, sentence: str) -> BytesIO:
         """convert text to audio buffer"""
 
-        logging.info("generating tts audio")
+        logger.info("generating tts audio")
 
         audio_buffer = io.BytesIO()
 
@@ -91,29 +100,29 @@ class SpeechGen:
         # audio_buffer.seek(0)
 
         # kokoro
-        # with self.client.audio.speech.with_streaming_response.create(
-        #     model="kokoro",
-        #     voice=self.speaker_lookup[speaker],
-        #     response_format="mp3",  # opus for websocket bytes transfer
-        #     input=sentence,
-        # ) as response:
-        #     for chunk in response.iter_bytes(chunk_size=4096):
-        #         audio_buffer.write(chunk)
-        #     audio_buffer.seek(0)
-
-        # xtts
-        params = {
-            "text": sentence,
-            "speaker": self.speaker_lookup[speaker],
-            "language": "en",
-        }
-        response = requests.get(Config.xtts_server_endpoint, params=params, stream=True)
-        if response.status_code == 200:
-            for chunk in response.iter_content(chunk_size=1024):
+        with self.client.audio.speech.with_streaming_response.create(
+            model="kokoro",
+            voice=self.speaker_lookup[speaker],
+            response_format="mp3",  # opus for websocket bytes transfer
+            input=sentence,
+        ) as response:
+            for chunk in response.iter_bytes(chunk_size=4096):
                 audio_buffer.write(chunk)
             audio_buffer.seek(0)
-        else:
-            logging.error("Error in tts from server")
+
+        # xtts
+        # params = {
+        #     "text": sentence,
+        #     "speaker": self.speaker_lookup[speaker],
+        #     "language": "en",
+        # }
+        # response = requests.get(Config.xtts_server_endpoint, params=params, stream=True)
+        # if response.status_code == 200:
+        #     for chunk in response.iter_content(chunk_size=1024):
+        #         audio_buffer.write(chunk)
+        #     audio_buffer.seek(0)
+        # else:
+        #     logger.error("Error in tts from server")
 
         return audio_buffer
 
@@ -126,7 +135,7 @@ class SpeechGen:
         idx: int,
     ):
         try:
-            logging.info("handling stream response")
+            logger.info("handling stream response")
             print("sending for tts", speaker, sentence)
 
             audio_buffer = self.generate_tts_audio(speaker, sentence)
@@ -141,4 +150,4 @@ class SpeechGen:
 
             await websocket.send_json(response_data)
         except Exception as e:
-            logging.error(f"error in stream response: {str(e)}")
+            logger.error(f"error in stream response: {str(e)}")

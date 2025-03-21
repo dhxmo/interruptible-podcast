@@ -20,6 +20,13 @@ pg = PodGenStandard()
 stt = FasterWhisperEngine()
 tts = SpeechGen()
 
+logging.basicConfig(
+    level=logging.INFO,  # Set to INFO to see info logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],  # Output to console
+)
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,9 +66,9 @@ async def websocket_endpoint(websocket: WebSocket):
     global sentenceIndex, tts
 
     # make this more robust. add a connection manger
-    print("acepting conn")
+    logger.info("acepting conn")
     await websocket.accept()
-    print("accepted")
+    logger.info("accepted")
 
     session_id = cm.create_session()
 
@@ -101,7 +108,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         cm.sessions[session_id], talking_points
                     )
 
-                    logging.info("sending podcast script to client")
+                    logger.info("sending podcast script to client", podcast_script)
 
                     # send script back to client
                     await websocket.send_json(
@@ -125,9 +132,9 @@ async def websocket_endpoint(websocket: WebSocket):
                         error_response = {"action": "error", "message": str(e)}
                         await websocket.send_json(error_response)
     except Exception as e:
-        logging.error(f"Error: {e}")
+        logger.error(f"Error: {e}")
     finally:
-        logging.info("WebSocket endpoint exiting. Cancelling worker.")
+        logger.info("WebSocket endpoint exiting. Cancelling worker.")
         await websocket.close()
 
 
@@ -140,4 +147,5 @@ if __name__ == "__main__":
         port=args.port,
         reload=True,
         timeout_keep_alive=120,
+        log_level="info",
     )

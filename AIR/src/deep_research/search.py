@@ -26,6 +26,15 @@ from .util import deduplicate_and_format_sources
 from ..config import Config
 
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,  # Set to INFO to see info logs
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()],  # Output to console
+)
+logger = logging.getLogger(__name__)
+
+
 class DeepResearcher:
     def __init__(self):
         self.llm = ChatOllama(
@@ -69,6 +78,8 @@ class DeepResearcher:
         """
         # generate query
         query = await self.generate_query(user_input)
+        logger.info("generated query")
+
         session["research_topic"] = query
         session["follow_up_query"] = query
 
@@ -79,11 +90,11 @@ class DeepResearcher:
             search_result = await self.web_search_n_scrape(
                 session, session["follow_up_query"]
             )
-            logging.info("search done")
+            logger.info("search done")
             session["web_search_results"].append(search_result)
 
             current_summary = await self.summarize_sources(session)
-            logging.info("summary generated")
+            logger.info("summary generated")
 
             # append new summarized knowledge to the previous knowledge
             session["running_summary"] += current_summary
@@ -92,11 +103,11 @@ class DeepResearcher:
 
             # if not last research loop continue
             if count == 0:
-                logging.info("last loop, generating talking points")
+                logger.info("last loop, generating talking points")
                 break
 
             session["follow_up_query"] = await self.reflect(session)
-            logging.info("summary reflected")
+            logger.info("summary reflected")
 
         talking_points = await self.generate_talking_points(session)
 
@@ -124,14 +135,14 @@ class DeepResearcher:
         self, session: dict[str, Any], search_query: str
     ) -> str | None:
         """gather search results and scrape content for later use"""
-        logging.info("init web search")
+        logger.info("init web search")
         try:
             # --- get search results
             search_results = await self.duckduckgosearch(
                 search_query,
                 max_results=Config.search_max_results,
             )
-            logging.info("search_results done")
+            logger.info("search_results done")
 
             # --- scrape and embed content for reuse later for questioning
             # Create a list of coroutines while maintaining index association
@@ -156,11 +167,11 @@ class DeepResearcher:
             )
 
         except Exception as e:
-            logging.error("error in web search", str(e))
+            logger.error("error in web search", str(e))
 
     async def summarize_sources(self, session: dict[str, Any]) -> str | None:
         """summarize search results"""
-        logging.info("init summarize sources")
+        logger.info("init summarize sources")
         try:
             existing_summary = session.get("running_summary")
             most_recent_web_search = session.get("web_search_results")[-1]
@@ -200,7 +211,7 @@ class DeepResearcher:
             return running_summary
 
         except Exception as e:
-            logging.error("error in summarize sources", str(e))
+            logger.error("error in summarize sources", str(e))
 
     async def reflect(self, session: dict[str, Any]) -> str | None:
         try:
@@ -266,12 +277,12 @@ class DeepResearcher:
 
                 return results
         except Exception as e:
-            logging.error("error in duckduckgo search", str(e))
-            logging.error("full error details", type(e).__name__)
+            logger.error("error in duckduckgo search", str(e))
+            logger.error("full error details", type(e).__name__)
             return []
 
     async def generate_talking_points(self, session: dict[str, Any]) -> str | None:
-        logging.info("init generate talking points")
+        logger.info("init generate talking points")
 
         try:
 
@@ -309,7 +320,7 @@ class DeepResearcher:
             return talking_points
 
         except Exception as e:
-            logging.error("error in generating talking points", str(e))
+            logger.error("error in generating talking points", str(e))
 
     async def fetch_url_content(
         self, client_session: dict[str, Any], TARGET_URL: str
@@ -325,7 +336,7 @@ class DeepResearcher:
                 all_text = soup.get_text(separator=" ", strip=True)
                 cleaned_text = re.sub(r"\s+", " ", all_text)
 
-                logging.info("init content extraction")
+                logger.info("init content extraction")
                 try:
                     human_msg_content = (
                         f"<User Input> \n {client_session.get('research_topic')} \n <User Input>\n\n"
@@ -362,7 +373,7 @@ class DeepResearcher:
 
                     return content_extracted
                 except Exception as e:
-                    logging.error(f"Error extracting content '{TARGET_URL}': {str(e)}")
+                    logger.error(f"Error extracting content '{TARGET_URL}': {str(e)}")
                     return ""
 
             # --- fetch url and parse content with llm
@@ -370,7 +381,7 @@ class DeepResearcher:
                 html = await fetch(session, TARGET_URL)
                 return await parse(client_session, html)
         except Exception as e:
-            logging.error(f"Error crawling the web '{TARGET_URL}': {str(e)}")
+            logger.error(f"Error crawling the web '{TARGET_URL}': {str(e)}")
             return ""
 
     async def embed_url(
@@ -408,9 +419,9 @@ class DeepResearcher:
                     )
                     vectordb.persist()
 
-                    logging.info("content persisted in vectordb")
+                    logger.info("content persisted in vectordb")
 
             return fetched_content
         except Exception as e:
-            logging.error("failed fetch_url_content", str(e))
+            logger.error("failed fetch_url_content", str(e))
         return ""

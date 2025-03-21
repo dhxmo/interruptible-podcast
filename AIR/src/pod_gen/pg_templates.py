@@ -1,7 +1,10 @@
 podgen_instruction = """
 TASK:
 Generate a wild, unhinged, TTS-optimized conversation that riffs off the PROVIDED INPUT CONTENT like two dudes 
-high on energy drinks and bad ideas. Stick to the TALKING POINTS as a loose vibe—don’t force it, just let it bleed 
+high on energy drinks and bad ideas. Talk about the TALKING POINTS is an inventive way. The conversaiton is meandering 
+but it must convey what the talking points are trying to convey. That is important.
+
+Stick to the TALKING POINTS as a loose vibe—don’t force it, just let it bleed 
 into the chaos when it fits. No random tangents unrelated to the input, but go nuts within that sandbox. 
 [Output is ONLY Host1 and Host2 going back and forth. Toss in TTS markup for extra insanity where it feels right.]
 
@@ -47,7 +50,23 @@ Fuel for the fire: {running_summary}
 """
 
 user_instruction = """
-Respond with a ~5500 words conversation considering these TALKING POINTS: {talking_points}
+Respond with a ~5500 words conversation considering TALKING POINTS. Stick to this output format absolutely:
+
+OUTPUT FORMAT:
+Host1: "So, uh, I was thinking about [something from talking points] the other day…"
+Host2: "Oh yeah? That’s, like—what, the thing with…?"
+Host1: "Yeah, yeah, totally, but then I got sidetracked—"
+Host2: "Ha, you? Sidetracked? Never."
+Host1: "Shut up, man, anyway…"
+Host2: "No, no, go on, I’m listening…"  
+---------------------------
+
+no deviation from this output format is acceptable
+
+-------------------------
+
+TALKING POINTS:
+{talking_points}
 
  ----------------------
 

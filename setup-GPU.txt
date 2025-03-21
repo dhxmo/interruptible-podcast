@@ -2,8 +2,7 @@ docker template  open port 11434 and 8000
 
 // ---- ollama
 curl -fsSL https://ollama.com/install.sh | sh
-export OLLAMA_HOST=0.0.0.0
-ollama serve
+export OLLAMA_HOST=0.0.0.0 && ollama serve
 
 ollama run qwen2.5
 ollama run deepseek-r1
@@ -12,6 +11,15 @@ ollama run hf.co/NousResearch/Hermes-2-Pro-Llama-3-8B-GGUF:Q8_0
 
 // --- xTTS server setup
 cd xTTS-server
-python -m venv venv && source venv/bin/activate
-pip install -r requirements
+python -m venv venv && source venv/bin/activate && pip install -r requirements.txt
 python server.py
+
+// --- kokoro fastapi
+git clone https://github.com/remsky/Kokoro-FastAPI.git
+cd Kokoro-FastAPI
+
+curl -LsSf https://astral.sh/uv/install.sh | sh
+sudo apt-get install espeak-ng
+
+python docker/scripts/download_model.py --output api/src/models/v1_0
+./start-gpu.sh

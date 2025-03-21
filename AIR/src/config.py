@@ -31,7 +31,11 @@ class Config:
     max_tokens_per_resource = 1000
     search_max_results = 1
     fetch_full_page = True
-    ollama_base_url = "http://.../"
+
+    ollama_base_url = "http://49.49.8.106:60152/"
+    kokoro_server_endpoint = "http://49.49.8.106:60065/v1"
+    xtts_server_endpoint = "http://49.49.8.106:60065/generate-audio/"
+
     uuid = id_generator(7)
     HF_EMBEDDINGS_MODEL_NAME = "all-MiniLM-L6-v2"
     INDEX_PERSIST_DIRECTORY = "./data/chromadb"
@@ -58,5 +62,3 @@ class Config:
     # distil-large-v2 : 300 ms
     # distil-large-v3: 300ms
     # large-v2 : 350ms
-
-    xtts_server_endpoint = "http:.../..."

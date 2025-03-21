@@ -4,11 +4,11 @@ import logging
 
 
 class Config:
-    xtts_server_endpoint = "http://185.150.27.254:24039/generate-audio/"
+    xtts_server_endpoint = "http://172.219.157.164:14930/generate-audio/"
 
 
 # Sample data
-sentence = "Hey, what's up?"
+sentence = "Right? But then I started thinking about how this thing could hack into a TIE Fighter's systems. Can you imagine?"
 speaker = "clint"  # Assuming this maps to a file path in speaker_lookup
 # speaker_lookup = {"clint": "voices/clint.wav"}
 
