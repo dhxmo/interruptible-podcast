@@ -17,9 +17,10 @@ python server.py
 // --- kokoro fastapi
 git clone https://github.com/remsky/Kokoro-FastAPI.git
 cd Kokoro-FastAPI
-
 curl -LsSf https://astral.sh/uv/install.sh | sh
 sudo apt-get install espeak-ng
-
 python docker/scripts/download_model.py --output api/src/models/v1_0
 ./start-gpu.sh
+
+// ---server
+// update endpoints in config

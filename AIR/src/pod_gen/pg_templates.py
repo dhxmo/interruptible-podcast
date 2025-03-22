@@ -4,9 +4,14 @@ Generate a wild, unhinged, TTS-optimized conversation that riffs off the PROVIDE
 high on energy drinks and bad ideas. Talk about the TALKING POINTS is an inventive way. The conversaiton is meandering 
 but it must convey what the talking points are trying to convey. That is important.
 
+Avoid filler sounds like 'uh,' 'um,' 'oh,' or 'you know'—TTS can’t handle them, so keep it clean and punchy.
+
 Stick to the TALKING POINTS as a loose vibe—don’t force it, just let it bleed 
 into the chaos when it fits. No random tangents unrelated to the input, but go nuts within that sandbox. 
 [Output is ONLY Host1 and Host2 going back and forth. Toss in TTS markup for extra insanity where it feels right.]
+
+NEVER NEVER NEVER repeat or go in a loop. If you've run out of things to say, end it quickly, but DO NOT repeat yourself 
+or go into an endless loop.
 
 Instructions for the Hosts:
 Kick It Off with a Bang: Start by both yelling the user’s question like it’s a battle cry (e.g., “USER WANTS TO KNOW—!”), 
@@ -50,18 +55,18 @@ Fuel for the fire: {running_summary}
 """
 
 user_instruction = """
-Respond with a ~5500 words conversation considering TALKING POINTS. Stick to this output format absolutely:
+Respond with a conversation considering TALKING POINTS. Stick to this output format absolutely:
 
+-----------------------
+NEVER NEVER NEVER repeat or go in a loop. If you've run out of things to say, end it quickly, but DO NOT repeat yourself 
+or go into an endless loop.
+
+Stick to this output format absolutely:::::
+no deviation from this output format is acceptable, the host name needs to be followed by a :, and then the dialogue. nothing else.
 OUTPUT FORMAT:
-Host1: "So, uh, I was thinking about [something from talking points] the other day…"
-Host2: "Oh yeah? That’s, like—what, the thing with…?"
-Host1: "Yeah, yeah, totally, but then I got sidetracked—"
-Host2: "Ha, you? Sidetracked? Never."
-Host1: "Shut up, man, anyway…"
-Host2: "No, no, go on, I’m listening…"  
----------------------------
+Host1: "So, I was thinking about [something from talking points] the other day"
+Host2: "Oh yeah? That’s, like—what, the thing with"
 
-no deviation from this output format is acceptable
 
 -------------------------
 
@@ -71,10 +76,10 @@ TALKING POINTS:
  ----------------------
 
 - Create a natural, casual, meandering tone dialogue that loosely references the provided talking points when it feels right
-- Introduce disfluencies (uh, um, you know) to keep it real and conversational
+- Avoid filler sounds like 'uh,' 'um,' 'oh,' or 'you know'—TTS can’t handle them, so keep it clean and punchy.
 - VERY VERY IMPORTANT ---> Host1 and Host2 are just two unnamed dudes hanging out, no expert vibes, no "I’m [Name]" stuff
 - Let speakers interrupt, overlap, and guess where the other’s going with their thoughts
-- Toss in reactions like "Oh yeah?" "No way," or "Huh" to keep it lively
+- Toss in reactions like "Oh yeah?" or "No way," to keep it lively
 - Break up any long rants into short bursts with the other guy jumping in
 - Avoid overusing words like "absolutely" or "definitely"—keep it chill and varied
 - Have them finish each other’s sentences sometimes, like old pals
@@ -92,13 +97,16 @@ TALKING POINTS:
 - Transition between topics (or tangents) with {engagement_techniques}—keep it seamless and off-the-cuff
 -----------
 
+
+NEVER NEVER NEVER repeat or go in a loop. If you've run out of things to say, end it quickly, but DO NOT repeat yourself 
+or go into an endless loop.
+Stick to this output format absolutely:::::
+no deviation from this output format is acceptable, the host name needs to be followed by a :, and then the dialogue. nothing else.
+
 OUTPUT FORMAT:
-Host1: "So, uh, I was thinking about [something from talking points] the other day…"
-Host2: "Oh yeah? That’s, like—what, the thing with…?"
-Host1: "Yeah, yeah, totally, but then I got sidetracked—"
-Host2: "Ha, you? Sidetracked? Never."
-Host1: "Shut up, man, anyway…"
-Host2: "No, no, go on, I’m listening…"  
+Host1: "So, I was thinking about [something from talking points] the other day"
+Host2: "Oh yeah? That’s, like—what, the thing with ?"
+Host1: "Yeah, yeah, totally—"
 
 ---------------------
 

@@ -32,9 +32,9 @@ class Config:
     search_max_results = 1
     fetch_full_page = True
 
-    ollama_base_url = "http://49.49.8.106:60152/"
-    kokoro_server_endpoint = "http://49.49.8.106:60065/v1"
-    xtts_server_endpoint = "http://49.49.8.106:60065/generate-audio/"
+    ollama_base_url = "http://172.219.157.164:14940/"
+    kokoro_server_endpoint = "http://172.219.157.164:15031/v1"
+    xtts_server_endpoint = "http://172.219.157.164:15031/generate-audio/"
 
     uuid = id_generator(7)
     HF_EMBEDDINGS_MODEL_NAME = "all-MiniLM-L6-v2"

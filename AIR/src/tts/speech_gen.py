@@ -40,7 +40,7 @@ class SpeechGen:
         self.processing = False
         self.current_task: Optional[asyncio.Task] = None
         # How long to wait between processing each normal request (in seconds)
-        self.normal_processing_delay = 3.0
+        self.normal_processing_delay = 2.0
 
     async def add_normal_request(self, websocket, action, speaker, sentence, idx):
         logger.info("adding normal request")
